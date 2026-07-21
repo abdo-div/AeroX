@@ -3,7 +3,7 @@ import multer from "multer";
 import sharp from "sharp";
 import Gadget from "../models/gadgetModel.js";
 import Review from "../models/reviewModel.js";
-import APIFeatures from "../utils/apiFeatures.js";
+import APIFeatures from "../utils/APIFeatures.js";
 
 // ==========================================
 // 📸 HIGH-PERFORMANCE MULTI-IMAGE PROCESSING
