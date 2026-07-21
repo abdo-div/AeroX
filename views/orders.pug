@@ -1,0 +1,89 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12 flex flex-col md:flex-row gap-gutter")
+    //- ── SIDEBAR ──
+    aside(class="w-full md:w-[260px] shrink-0 space-y-2")
+      a(href="/me" class="flex items-center gap-4 px-6 py-4 border-l-2 border-transparent text-on-surface-variant hover:bg-surface-container transition-all")
+        span(class="material-symbols-outlined") account_circle
+        span(class="font-label-caps text-label-caps") PERSONAL INFO
+      a(href="/my-orders" class="flex items-center gap-4 px-6 py-4 border-l-2 border-primary bg-surface-container text-primary active-glow transition-all")
+        span(class="material-symbols-outlined") shopping_bag
+        span(class="font-label-caps text-label-caps") MY ORDERS
+
+    //- ── MAIN CONTENT ──
+    section(class="flex-1 min-w-0")
+      div(class="mb-12")
+        h1(class="font-headline-lg text-headline-lg text-primary mb-2") MISSION DISPATCH HISTORY
+        div(class="h-1 w-24 bg-primary")
+
+      div(class="space-y-6")
+        if orders && orders.length
+          each order in orders
+            div(class="bg-[#111111] border border-[#1f1f1f] p-6 hover:border-primary/30 transition-colors")
+              //- Order Header
+              div(class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6")
+                div(class="space-y-1")
+                  span(class="font-accent-stat text-primary") ORDER ##{order._id.toString().slice(-8).toUpperCase()}
+                  div(class="flex items-center gap-3 mt-1")
+                    //- Payment status badge
+                    span(class=`px-3 py-1 font-label-caps text-[10px] tracking-widest ${order.paymentStatus === 'paid' ? 'bg-green-900/50 text-green-400' : 'bg-yellow-900/50 text-yellow-400'}`)
+                      | PAYMENT: #{order.paymentStatus.toUpperCase()}
+                    //- Order status badge
+                    span(class=`px-3 py-1 font-label-caps text-[10px] tracking-widest ${order.orderStatus === 'delivered' ? 'bg-green-900/50 text-green-400' : order.orderStatus === 'shipped' ? 'bg-blue-900/50 text-blue-400' : 'bg-surface-container-high text-on-surface-variant'}`)
+                      | #{order.orderStatus.toUpperCase()}
+                div(class="text-right")
+                  span(class="font-label-caps text-[10px] text-on-surface-variant") ORDER DATE
+                  p(class="font-accent-stat text-white") #{new Date(order.createdAt).toLocaleDateString('en-US', {year:'numeric', month:'short', day:'numeric'})}
+
+              //- Order Progress Stepper
+              div(class="mb-8 px-2")
+                -
+                  var steps = [
+                    {label:'ORDERED', key:'processing'},
+                    {label:'PROCESSING', key:'processing'},
+                    {label:'SHIPPED', key:'shipped'},
+                    {label:'DELIVERED', key:'delivered'}
+                  ]
+                  var statusOrder = ['processing','shipped','delivered']
+                  var currentIndex = statusOrder.indexOf(order.orderStatus)
+                div(class="relative flex justify-between")
+                  div(class="absolute top-4 left-0 w-full h-[2px] bg-[#1f1f1f]")
+                    div(class="h-full bg-primary transition-all duration-700" style=`width:${order.orderStatus==='processing'?'0%':order.orderStatus==='shipped'?'50%':'100%'}`)
+                  each step, i in ['PLACED', 'PROCESSING', 'SHIPPED', 'DELIVERED']
+                    div(class="relative z-10 flex flex-col items-center gap-2")
+                      div(class=`w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full border-2 ${i <= currentIndex + 1 ? 'border-primary bg-primary text-black' : 'border-surface-variant bg-surface text-on-surface-variant'}`)
+                        | #{i + 1}
+                      span(class=`font-label-caps text-[9px] ${i <= currentIndex + 1 ? 'text-primary' : 'text-on-surface-variant'}`) #{step}
+
+              //- Order Items
+              div(class="space-y-4 pt-6 border-t border-surface-variant")
+                if order.items && order.items.length
+                  each item in order.items
+                    div(class="flex items-center gap-4")
+                      div(class="w-14 h-14 bg-surface-container flex-shrink-0 border border-surface-variant flex items-center justify-center")
+                        if item.product && item.product.imageCover
+                          img(src=`/images/products/${item.product.imageCover}` alt="" class="w-full h-full object-cover")
+                        else
+                          span(class="material-symbols-outlined text-outline-variant") inventory_2
+                      div(class="flex-grow")
+                        if item.product
+                          p(class="font-body-md text-white") #{item.product.name}
+                        p(class="font-label-caps text-[10px] text-on-surface-variant") QTY: #{item.quantity} × $#{item.priceAtPurchase}
+
+              //- Total
+              div(class="flex justify-between items-center pt-4 border-t border-surface-variant mt-4")
+                span(class="font-label-caps text-on-surface-variant") ORDER TOTAL
+                span(class="font-accent-stat text-primary text-xl") $#{order.totalAmount.toFixed(2)}
+
+              //- Shipping address
+              if order.shippingAddress
+                div(class="mt-4 pt-4 border-t border-surface-variant")
+                  p(class="font-label-caps text-[10px] text-on-surface-variant mb-1") SHIPPING TO
+                  p(class="font-body-md text-white") #{order.shippingAddress}
+
+        else
+          div(class="text-center py-24 bg-surface-container")
+            span(class="material-symbols-outlined text-6xl text-outline-variant mb-4 block") local_shipping
+            p(class="text-on-surface-variant font-headline-md text-xl") NO DISPATCH RECORDS FOUND.
+            a(href="/shop" class="inline-block mt-6 px-10 py-4 bg-primary text-on-primary font-label-caps hover:bg-[#FFAA00] transition-colors") START SHOPPING

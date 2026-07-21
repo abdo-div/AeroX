@@ -1,0 +1,59 @@
+nav#main-nav(class="sticky top-0 z-50 flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-[6rem] bg-surface/60 backdrop-blur-xl border-b border-surface-variant transition-all duration-300")
+
+  //- Logo
+  a(href="/" class="flex items-center shrink-0")
+    img(src="/images/logo.png" alt="AeroX Kinetic Armory" style="width:14rem;height:auto" class="object-contain")
+
+  //- Desktop Nav Links
+  div(class="hidden md:flex items-center gap-6")
+    a(href="/shop" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") SHOP
+    a(href="/shop?category=keyboard" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") KEYBOARDS
+    a(href="/shop?category=mouse" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") MICE
+    a(href="/shop?category=audio" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") AUDIO
+    a(href="/shop?category=streaming" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") STREAMING
+    a(href="/shop?category=ambient-lighting" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") LIGHTING
+    a(href="/shop?category=cpu&category=gpu&category=ram&category=case" class="font-label-caps text-label-caps text-on-surface hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]") COMPONENTS
+    if user && user.role === 'admin'
+      a(href="/make-offer/" class="font-label-caps text-label-caps text-on-surface border border-primary-container/50 px-3 py-1.5 hover:bg-primary-container/10 hover:text-primary-container transition-all duration-300") MAKE OFFER
+
+  //- Nav Actions
+  div(class="flex items-center gap-6")
+    button(id="search-btn" class="material-symbols-outlined text-on-surface hover:text-primary transition-transform active:scale-95" aria-label="Search") search
+    a(href="/cart" class="relative text-on-surface hover:text-primary transition-transform active:scale-95" aria-label="Cart")
+      span(class="material-symbols-outlined") shopping_cart
+      span#nav-cart-badge(class=(cartCount && cartCount > 0) ? "absolute -top-2 -right-2 w-4 h-4 bg-primary text-on-primary text-[9px] font-black flex items-center justify-center rounded-full" : "hidden") #{cartCount || 0}
+
+    if user
+      a(href="/me" class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary hover:border-primary-fixed-dim transition-all active:scale-95 shrink-0" aria-label="Account")
+        if user.photo && user.photo !== 'default-userInfo.jpg'
+          img(src=`/images/users/${user.photo}` alt="Profile" class="w-full h-full object-cover")
+        else
+          span(class="material-symbols-outlined text-primary text-lg flex items-center justify-center w-full h-full bg-surface-container") person
+    else
+      a(href="/login" class="material-symbols-outlined text-on-surface hover:text-primary transition-transform active:scale-95" aria-label="Login") person
+
+    //- Mobile hamburger
+    button(id="mobile-menu-btn" class="md:hidden material-symbols-outlined text-on-surface hover:text-primary" aria-label="Menu") menu
+
+  //- Mobile Drawer
+  div#mobile-menu(class="fixed top-[6rem] left-0 w-full bg-surface/95 backdrop-blur-xl border-b border-surface-variant z-40 hidden flex-col p-8 gap-6")
+    a(href="/shop" class="font-label-caps text-label-caps text-on-surface hover:text-primary") SHOP
+    a(href="/shop?category=keyboard" class="font-label-caps text-label-caps text-on-surface hover:text-primary") KEYBOARDS
+    a(href="/shop?category=mouse" class="font-label-caps text-label-caps text-on-surface hover:text-primary") MICE
+    a(href="/shop?category=audio" class="font-label-caps text-label-caps text-on-surface hover:text-primary") AUDIO
+    a(href="/shop?category=streaming" class="font-label-caps text-label-caps text-on-surface hover:text-primary") STREAMING
+    a(href="/shop?category=ambient-lighting" class="font-label-caps text-label-caps text-on-surface hover:text-primary") LIGHTING
+    a(href="/shop?category=cpu&category=gpu&category=ram&category=case" class="font-label-caps text-label-caps text-on-surface hover:text-primary") COMPONENTS
+    if user && user.role === 'admin'
+      a(href="/make-offer" class="font-label-caps text-label-caps text-primary-container border border-primary-container/40 px-3 py-1.5 hover:bg-primary-container/10 transition-all") MAKE OFFER
+
+script.
+  // Mobile menu toggle
+  const mobileBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (mobileBtn && mobileMenu) {
+    mobileBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      mobileMenu.classList.toggle('flex');
+    });
+  }

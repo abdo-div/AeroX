@@ -1,0 +1,198 @@
+doctype html
+html(class="dark" lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title #{title || 'AEROX | Engineered for Dominance'}
+    meta(name="description" content=description || 'AeroX — Premium gaming gear engineered for champions. Keyboards, mice, audio, streaming and ambient lighting.')
+    link(rel="icon" type="image/png" href="/images/logo.png")
+
+    //- Tailwind CDN (matching Stitch export)
+    script(src="https://cdn.tailwindcss.com?plugins=forms,container-queries")
+
+    //- Google Fonts
+    link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@500;700&family=Rajdhani:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet")
+    link(href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet")
+    link(href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Rajdhani:wght@100..900&display=swap" rel="stylesheet")
+
+    //- Global AeroX CSS
+    link(rel="stylesheet" href="/css/aerox.css")
+
+    //- Google Identity Services
+    script(src="https://accounts.google.com/gsi/client")
+
+    //- Tailwind Design System Config (Kinetic Armory)
+    script(id="tailwind-config").
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "on-secondary-container": "#b4b5b5",
+              "tertiary-container": "#ffcfc9",
+              "on-tertiary": "#690005",
+              "surface-variant": "#353534",
+              "tertiary": "#fff4f3",
+              "surface-container-low": "#1c1b1b",
+              "on-tertiary-container": "#c10013",
+              "on-primary-container": "#705e00",
+              "inverse-on-surface": "#313030",
+              "on-error": "#690005",
+              "error-container": "#93000a",
+              "surface": "#131313",
+              "surface-bright": "#3a3939",
+              "on-surface": "#e5e2e1",
+              "primary-container": "#ffd700",
+              "background": "#080808",
+              "primary-fixed": "#ffe16d",
+              "on-secondary-fixed-variant": "#454747",
+              "on-tertiary-fixed-variant": "#93000b",
+              "primary": "#FFD700",
+              "on-secondary-fixed": "#1a1c1c",
+              "outline-variant": "#4d4732",
+              "on-primary-fixed-variant": "#544600",
+              "inverse-primary": "#705d00",
+              "error": "#ffb4ab",
+              "tertiary-fixed": "#ffdad6",
+              "on-secondary": "#2f3131",
+              "surface-dim": "#131313",
+              "secondary": "#c6c6c7",
+              "on-primary": "#080808",
+              "on-background": "#e5e2e1",
+              "primary-fixed-dim": "#e9c400",
+              "on-tertiary-fixed": "#410002",
+              "secondary-fixed": "#e2e2e2",
+              "secondary-fixed-dim": "#c6c6c7",
+              "surface-container-lowest": "#0e0e0e",
+              "secondary-container": "#454747",
+              "surface-container-high": "#2a2a2a",
+              "on-primary-fixed": "#221b00",
+              "outline": "#999077",
+              "surface-container": "#111111",
+              "on-error-container": "#ffdad6",
+              "on-surface-variant": "#d0c6ab",
+              "surface-container-highest": "#353534",
+              "surface-tint": "#e9c400",
+              "tertiary-fixed-dim": "#ffb4ab",
+              "inverse-surface": "#e5e2e1"
+            },
+            "borderRadius": {
+              "DEFAULT": "0px",
+              "lg": "0px",
+              "xl": "0px",
+              "full": "9999px"
+            },
+            "spacing": {
+              "gutter": "24px",
+              "unit": "4px",
+              "margin-desktop": "64px",
+              "margin-mobile": "16px",
+              "container-max": "1440px"
+            },
+            "fontFamily": {
+              "headline-lg-mobile": ["Rajdhani"],
+              "label-caps": ["Inter"],
+              "accent-stat": ["Orbitron"],
+              "headline-lg": ["Rajdhani"],
+              "body-lg": ["Inter"],
+              "display-xl": ["Rajdhani"],
+              "headline-md": ["Rajdhani"],
+              "body-md": ["Inter"]
+            },
+            "fontSize": {
+              "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+              "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.2em", "fontWeight": "700"}],
+              "accent-stat": ["20px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+              "headline-lg": ["40px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "700"}],
+              "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+              "display-xl": ["96px", {"lineHeight": "1.1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+              "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+              "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+
+    block head
+
+  body(class="bg-background text-on-surface custom-scrollbar overflow-x-hidden")
+
+    //- Flash Alert Messages
+    if locals.alert
+      .alert(class=`alert--${alertType || 'success'}`) #{alert}
+
+    //- Header Partial
+    include ../partials/_header.pug
+
+    //- Page Content
+    block content
+
+    //- Footer Partial
+    include ../partials/_footer.pug
+
+    //- Global JS
+    script.
+      // Scroll reveal animation
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('active');
+        });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+      // Sticky Navbar shrink on scroll
+      window.addEventListener('scroll', () => {
+        const nav = document.querySelector('nav#main-nav');
+        if (!nav) return;
+        if (window.scrollY > 50) {
+          nav.style.height = '5rem';
+        } else {
+          nav.style.height = '6rem';
+        }
+      });
+
+      // Auto-dismiss alerts
+      const alertEl = document.querySelector('.alert');
+      if (alertEl) setTimeout(() => alertEl.remove(), 5000);
+
+      // Google Sign-In callback
+      async function handleGoogleCredential(response) {
+        try {
+          const res = await fetch('/api/v1/users/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: response.credential })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            window.location.href = '/';
+          } else {
+            alert(data.message || 'Google authentication failed.');
+          }
+        } catch(err) {
+          console.error(err);
+          alert('Connection error. Try again.');
+        }
+      }
+
+      // Live cart badge updater
+      async function updateCartBadge() {
+        try {
+          const res = await fetch('/api/v1/carts');
+          if (!res.ok) return;
+          const data = await res.json();
+          const items = data.data.cart.items || [];
+          const count = items.reduce((sum, i) => sum + i.quantity, 0);
+          const badge = document.getElementById('nav-cart-badge');
+          if (!badge) return;
+          if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove('hidden');
+            badge.classList.add('absolute', '-top-2', '-right-2', 'w-4', 'h-4', 'bg-primary', 'text-on-primary', 'text-[9px]', 'font-black', 'flex', 'items-center', 'justify-center', 'rounded-full');
+          } else {
+            badge.classList.add('hidden');
+          }
+        } catch(err) {}
+      }
+
+    block scripts

@@ -1,0 +1,153 @@
+extends layouts/base.pug
+
+block content
+  //- ── HERO SECTION ──────────────────────────────────────────────────────────
+  section(class="relative min-h-screen w-full flex flex-col md:flex-row items-center overflow-hidden")
+    div(class="absolute inset-0 laser-grid opacity-30 z-0")
+    div(class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background z-0")
+
+    //- Left content
+    div(class="relative z-10 w-full md:w-1/2 flex flex-col justify-center px-margin-mobile md:px-margin-desktop py-20")
+      div(class="reveal active")
+        span(class="inline-block px-3 py-1 bg-primary text-on-primary font-label-caps text-[10px] mb-6") NEW RELEASE
+        h1(class="font-display-xl text-headline-lg-mobile md:text-display-xl uppercase leading-none mb-8")
+          | DOMINATE.
+          br
+          | EVERY.
+          br
+          | MATCH.
+        div(class="flex flex-col sm:flex-row gap-4 mb-12")
+          a(href="/shop" class="px-10 py-4 bg-primary text-on-primary font-label-caps text-label-caps hover:bg-[#FFAA00] transition-colors text-center") SHOP NOW
+          a(href="/shop" class="px-10 py-4 border-2 border-on-surface text-on-surface font-label-caps text-label-caps hover:bg-on-surface hover:text-background transition-all text-center") EXPLORE LINEUP
+
+        //- Stats strip
+        div(class="grid grid-cols-2 md:grid-cols-3 gap-8 pt-8 border-t border-surface-variant")
+          div
+            div(class="font-accent-stat text-accent-stat text-primary") 0.2ms
+            div(class="font-label-caps text-[10px] text-on-surface-variant") LATENCY
+          div
+            div(class="font-accent-stat text-accent-stat text-primary") 8000Hz
+            div(class="font-label-caps text-[10px] text-on-surface-variant") POLLING RATE
+          div
+            div(class="font-accent-stat text-accent-stat text-primary") 64G
+            div(class="font-label-caps text-[10px] text-on-surface-variant") ACCELERATION
+
+    //- Right — hero image
+    div(class="relative z-10 w-full md:w-1/2 flex items-center justify-center h-[512px] md:h-screen")
+      div(class="relative group")
+        div(class="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse")
+        img(
+          class="relative z-20 w-4/5 md:w-full max-w-lg object-contain animate-float filter drop-shadow-[0_0_30px_rgba(255,215,0,0.3)]"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBIPYiugNczwtwUynDAz8bY4PplpbPJC0Un_MeLA9PFGlDw_YtqVUQa6w7Ob9-xOrKe3TI38VIR879y7_lYiQL5LaSP34I6lgJ65p85jKjdDzXwyKU0Adkmq-DWIaZCKyy5Y3UElzKL-ntjRdZT-wgVEZ85yPxn8Th1JY29kEsrTDpWltTfkFS8qF1yZHAfQaFtCAf3_Wz8CtYjhVJXAvVFlFJHNTzI76W5nqFNOHXQzbtQYVVCUlqb2-mwtFjU8jJAGNFK7MOkz6L"
+          alt="AeroX Elite Gaming Mouse"
+        )
+
+  //- ── CATEGORY STRIP ─────────────────────────────────────────────────────────
+  section(class="relative z-20 -mt-16 md:-mt-24 px-margin-mobile md:px-margin-desktop mb-24 reveal")
+    div(class="grid grid-cols-2 md:grid-cols-5 gap-4")
+      each cat in [{icon:'keyboard',label:'Keyboards',slug:'keyboard'},{icon:'mouse',label:'Mice',slug:'mouse'},{icon:'headphones',label:'Audio',slug:'audio'},{icon:'videocam',label:'Streaming',slug:'streaming'},{icon:'lightbulb',label:'Lighting',slug:'ambient-lighting'}]
+        a(href=`/shop?category=${cat.slug}` class="group relative bg-surface-container border-t-2 border-primary p-6 transition-all hover:-translate-y-2 cursor-pointer")
+          span(class="material-symbols-outlined text-primary mb-4 block") #{cat.icon}
+          h3(class="font-headline-md text-body-lg uppercase mb-2") #{cat.label}
+          div(class="h-1 w-0 bg-primary group-hover:w-full transition-all duration-500")
+
+  //- ── FEATURED GEAR ──────────────────────────────────────────────────────────
+  section(class="px-margin-mobile md:px-margin-desktop py-24 bg-surface-container-lowest")
+    div(class="flex items-center justify-between mb-16 reveal")
+      div
+        h2(class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase mb-2") FEATURED GEAR
+        div(class="h-1 w-32 bg-primary")
+      a(href="/shop" class="font-label-caps text-label-caps text-primary hover:underline") VIEW ALL COLLECTION
+
+    div(class="grid grid-cols-1 md:grid-cols-4 gap-gutter")
+      if featuredGadgets && featuredGadgets.length
+        each g in featuredGadgets
+          a(href=`/product/${g.slug}` class="reveal bg-surface border border-surface-variant rgb-border-top p-6 group block")
+            div(class="aspect-square mb-6 overflow-hidden bg-surface-container-high relative")
+              img(
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                src=g.imageCover ? `/images/products/${g.imageCover}` : 'https://lh3.googleusercontent.com/aida-public/AB6AXuARUBNRk3JcPdmVZK-mz3SF4POH7piHY77mNaVUcGjV9wrlX8p178fruyp5u9RHGkBbRK7Pb-4JKpiL1ZXOprEH8sClzi4VVctu8Ldjc8DyCU5Ch_x6tDzqcDVKTx2non1bXbFSBgdLwHKdBhOXvGxMcyO2RWqdf4LFOI35SZ5ccGc2Kg2guHMhVUUXGeNpQFjiK9LDHCyCETRlAZaROTR3irlsmE-TK3mTA0TPBdWCBKjG7nt6Suqwx8TP3fT9p_92fE44any1l5JB'
+                alt=g.name
+              )
+              if g.isFeatured
+                span(class="absolute top-4 left-4 bg-primary text-on-primary text-[10px] px-2 py-1 font-label-caps") TOP RATED
+            div(class="flex justify-between items-start mb-4")
+              div
+                h4(class="font-headline-md text-body-md uppercase text-on-surface") #{g.name}
+                p(class="font-label-caps text-[10px] text-on-surface-variant") #{g.category.toUpperCase()}
+              span(class="font-accent-stat text-primary") $#{g.price}
+            button(
+              class="add-to-cart-btn w-full py-3 border border-on-surface hover:bg-primary hover:text-on-primary hover:border-primary transition-all font-label-caps text-[10px] relative z-10"
+              data-id=g._id
+              type="button"
+            ) ADD TO ARSENAL
+      else
+        //- Fallback static cards (shown before DB data is seeded)
+        each item in [{name:'Vulcan Elite TKL',cat:'OPTICAL MECHANICAL',price:'$189',tag:'TOP RATED',img:'https://lh3.googleusercontent.com/aida-public/AB6AXuARUBNRk3JcPdmVZK-mz3SF4POH7piHY77mNaVUcGjV9wrlX8p178fruyp5u9RHGkBbRK7Pb-4JKpiL1ZXOprEH8sClzi4VVctu8Ldjc8DyCU5Ch_x6tDzqcDVKTx2non1bXbFSBgdLwHKdBhOXvGxMcyO2RWqdf4LFOI35SZ5ccGc2Kg2guHMhVUUXGeNpQFjiK9LDHCyCETRlAZaROTR3irlsmE-TK3mTA0TPBdWCBKjG7nt6Suqwx8TP3fT9p_92fE44any1l5JB'},{name:'Swift-X Pro',cat:'ULTRALIGHT 54G',price:'$129',tag:'NEW',img:'https://lh3.googleusercontent.com/aida-public/AB6AXuDKxqCymlfvgRj0jAg-04n9ANyXQTfvcGUjtD4jE2NuN5dLeNxPR_6GjaJ1Xs53MVBhzjobPWB2PDsRPXEEn3ALBgWet97LyfbxEti5tntSdLzMsTHUPRrq5RewqEnX15Xfd0Fpk3_04Qb-v7D3BaB9F1M_jRY5dK_1omzppLkRIOQUpGvDheWPkJuu0_1B3eZ9cCR2GSZWmsomLMnXG-qRfHJF0vEulPZjyC_7CBCsI9P6omxA_e2yWrrOaG_kfHZOmcmieCEchog-'},{name:'Sonic Fury 7.1',cat:'SPATIAL AUDIO',price:'$249',tag:'',img:'https://lh3.googleusercontent.com/aida-public/AB6AXuA3J4bGttSRCObjQZtC-KbHxzXIea12al83_pMWv_xiaH565noszssjVS7rl0slcH8gPGKhRM9RqKC2nO-9gN7rJ6r1lG3DsoBHol5q0N1aQMnOvewZf_4PlUyHZs8ziA9fVoEpJbREkJi9_o-VNtRmya4xOMht3YYI_dFasWDnkpkutb5mGAbOeXVcWttPalFhXRDFASQ3NQBtaCkRHaHSuOGKgUud0tYhzy5YSzwyPW20liBcHi5KGKlf70aHuVtHEWyAgA35HMuW'},{name:'Vision Pro 4K',cat:'AUTO-FOCUS CAM',price:'$199',tag:'',img:'https://lh3.googleusercontent.com/aida-public/AB6AXuCPRm9spcPyQYo4hj-WR06WdAXsIPxjd5MLujYBWReaPcLMl4Jr7Omu3Kin2AWH3Bq3eKFu3H32P2o6ricZ18jsoSV6wpqhWKXo2O2akaEMSbiT2r26xTCbwltcznnTgX43nRANZKcZKHdJrHsfS3egrMPFjrT68GO__bT3dwfr05sQjY1-8te6xVSi2GM1Y1XLn4t2Cw2w4sn0bWpc0fSt9VrzPzdGl9wcYC5goL3-YQu3t4M2yGhOdU3FpF9vuTj8sBRU1eUg9C5-'}]
+          div(class="reveal bg-surface border border-surface-variant rgb-border-top p-6 group")
+            div(class="aspect-square mb-6 overflow-hidden bg-surface-container-high relative")
+              img(class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src=item.img alt=item.name)
+              if item.tag
+                span(class="absolute top-4 left-4 bg-primary text-on-primary text-[10px] px-2 py-1 font-label-caps") #{item.tag}
+            div(class="flex justify-between items-start mb-4")
+              div
+                h4(class="font-headline-md text-body-md uppercase text-on-surface") #{item.name}
+                p(class="font-label-caps text-[10px] text-on-surface-variant") #{item.cat}
+              span(class="font-accent-stat text-primary") #{item.price}
+            button(class="w-full py-3 border border-on-surface hover:bg-primary hover:text-on-primary hover:border-primary transition-all font-label-caps text-[10px]") ADD TO ARSENAL
+
+  //- ── WHY AEROX ──────────────────────────────────────────────────────────────
+  -
+    var features = [
+      {icon:'bolt', title:'Ultra-Low Latency', desc:'Engineered with our proprietary 0.2ms optical tech for instantaneous execution.'},
+      {icon:'verified_user', title:'2-Year Warranty', desc:'We stand behind every build. Full coverage for 24 months of relentless play.'},
+      {icon:'public', title:'Global Shipping', desc:'Dominance knows no borders. Expedited delivery to any battlefield worldwide.'},
+      {icon:'psychology', title:'iAero Software', desc:'Advanced customization and macros through our intuitive cloud-synced dashboard.'}
+    ]
+  section(class="px-margin-mobile md:px-margin-desktop py-24")
+    div(class="grid grid-cols-1 md:grid-cols-4 gap-gutter reveal")
+      each feat in features
+        div(class="text-center md:text-left")
+          span(class="material-symbols-outlined text-primary text-5xl mb-6 block") #{feat.icon}
+          h4(class="font-headline-md text-headline-md uppercase mb-4") #{feat.title}
+          p(class="text-on-surface-variant font-body-md") #{feat.desc}
+          p(class="text-on-surface-variant font-body-md") #{feat.desc}
+
+  //- ── NEWSLETTER ─────────────────────────────────────────────────────────────
+  section(class="px-margin-mobile md:px-margin-desktop py-32 relative overflow-hidden bg-primary")
+    div(class="absolute inset-0 opacity-10 pointer-events-none")
+      div(class="grid grid-cols-12 h-full w-full")
+        - for(let i=0;i<12;i++)
+          div(class="border-r border-background/50 h-full")
+    div(class="relative z-10 text-center max-w-4xl mx-auto reveal")
+      h2(class="font-display-xl text-headline-lg-mobile md:text-headline-lg text-background uppercase mb-8 leading-tight") JOIN THE AEROX ELITE
+      p(class="font-body-lg text-background/80 mb-12 uppercase tracking-widest font-bold") Get early access to drops and exclusive firmware updates.
+      div(class="flex flex-col md:flex-row gap-0 border-4 border-background overflow-hidden")
+        input(class="flex-1 px-8 py-6 bg-transparent text-background placeholder:text-background/50 border-none focus:ring-0 font-label-caps" placeholder="ENTER YOUR EMAIL" type="email" id="newsletter-email")
+        button(id="newsletter-btn" class="bg-background text-primary px-12 py-6 font-label-caps text-label-caps hover:bg-surface-variant hover:text-on-surface transition-colors") SUBSCRIBE
+
+block scripts
+  script.
+    // Add to cart from homepage
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = e.currentTarget.dataset.id;
+        if (!id) return;
+        try {
+          const res = await fetch('/api/v1/carts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ product: id, quantity: 1 })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            e.target.textContent = '✓ ADDED';
+            e.target.classList.replace('border-on-surface', 'border-primary');
+            e.target.classList.add('bg-primary', 'text-on-primary');
+          }
+        } catch(err) { console.error(err); }
+      });
+    });

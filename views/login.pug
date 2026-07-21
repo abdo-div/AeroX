@@ -1,0 +1,151 @@
+extends layouts/base.pug
+
+block content
+  //- Ambient Background Grid
+  div(class="fixed inset-0 cyber-grid pointer-events-none")
+  canvas(class="particle-canvas" id="particleCanvas")
+
+  main(class="relative z-10 w-full max-w-[480px] mx-auto px-margin-mobile md:px-0 min-h-[calc(100vh-6rem)] flex items-center")
+    div(class="login-card p-10 md:p-12 bg-[#111111] border border-[#1F1F1F]")
+      //- Header
+      div(class="flex flex-col items-center mb-10")
+        div(class="mb-4")
+          span(class="font-display-xl text-headline-md font-bold tracking-tighter text-primary") AEROX
+        h1(class="font-headline-lg text-[32px] uppercase text-on-surface tracking-widest") Welcome Back
+        p(class="font-label-caps text-on-secondary-container mt-2") Initialize System Access
+
+      //- Form
+      form(class="space-y-6" id="login-form")
+        div(class="space-y-2")
+          label(class="font-label-caps text-on-secondary-container block") Electronic Mail
+          div(class="relative")
+            span(class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-secondary-container text-[20px]") mail
+            input(type="email" id="email" required class="w-full bg-[#080808] border border-[#1F1F1F] py-4 pl-12 pr-4 text-on-surface font-body-md input-glow placeholder:text-[#555555]" placeholder="OPERATOR@AEROX.COM")
+        
+        div(class="space-y-2")
+          div(class="flex justify-between items-center")
+            label(class="font-label-caps text-on-secondary-container block") Access Code
+            a(href="#" class="font-label-caps text-primary-container text-[10px] hover:underline") Lost Code?
+          div(class="relative")
+            span(class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-secondary-container text-[20px]") lock
+            input(type="password" id="password" required class="w-full bg-[#080808] border border-[#1F1F1F] py-4 pl-12 pr-4 text-on-surface font-body-md input-glow placeholder:text-[#555555]" placeholder="••••••••••••")
+
+        button(type="submit" class="w-full bg-primary-container text-[#080808] py-4 font-label-caps text-[14px] font-bold tracking-[0.2em] btn-hover-effect active:scale-[0.98]")
+          | LOG IN
+
+      //- Divider
+      div(class="flex items-center my-8")
+        div(class="flex-grow h-[1px] bg-[#1F1F1F]")
+        span(class="px-4 font-label-caps text-on-secondary-container text-[10px]") OR CONTINUE WITH
+        div(class="flex-grow h-[1px] bg-[#1F1F1F]")
+
+      //- Google Sign-In Button
+      div(id="google-login-btn" class="w-full min-h-[44px] flex items-center justify-center")
+
+      div(class="mt-10 text-center")
+        a(href="/signup" class="font-label-caps text-primary-container hover:brightness-125 transition-all text-[12px]")
+          | Don't have an account? Sign Up
+
+    //- Status Bar
+    div(class="mt-6 flex justify-between items-center px-2")
+      div(class="flex gap-4")
+        div(class="flex items-center gap-1")
+          div(class="w-1.5 h-1.5 bg-primary-container animate-pulse")
+          span(class="font-label-caps text-[#555555] text-[8px]") ENCRYPTED
+        div(class="flex items-center gap-1")
+          div(class="w-1.5 h-1.5 bg-green-500")
+          span(class="font-label-caps text-[#555555] text-[8px]") CORE ONLINE
+      span(class="font-accent-stat text-[#555555] text-[10px]") VER: 4.0.9-STABLE
+
+block scripts
+  script.
+    // Particle animation logic
+    const canvas = document.getElementById('particleCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const resize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+      window.addEventListener('resize', resize);
+      resize();
+
+      class Particle {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.length = Math.random() * 80 + 20;
+          this.speed = Math.random() * 2 + 1;
+          this.opacity = Math.random() * 0.3 + 0.1;
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(this.x + this.length, this.y + this.length);
+          ctx.strokeStyle = `rgba(255, 215, 0, ${this.opacity})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        update() {
+          this.x += this.speed;
+          this.y += this.speed;
+          if (this.x > canvas.width || this.y > canvas.height) {
+            this.x = -this.length;
+            this.y = Math.random() * canvas.height - canvas.width;
+          }
+        }
+      }
+
+      for (let i = 0; i < 40; i++) particles.push(new Particle());
+      const animate = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+      };
+      animate();
+    }
+
+    // Submit handler
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        try {
+          const res = await fetch('/api/v1/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            window.location.href = '/';
+          } else {
+            alert(data.message || 'System login authorization denied.');
+          }
+        } catch(err) {
+          console.error(err);
+        }
+      });
+    }
+
+    // Initialize Google Sign-In
+    function initGoogleLogin() {
+      if (typeof google === 'undefined' || !google.accounts) {
+        setTimeout(initGoogleLogin, 100);
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: '#{googleClientId}',
+        callback: handleGoogleCredential,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('google-login-btn'),
+        { theme: 'outline', size: 'large', text: 'continue_with', width: 380, shape: 'rectangular' }
+      );
+    }
+    initGoogleLogin();

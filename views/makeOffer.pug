@@ -1,0 +1,203 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12")
+    header(class="mb-8")
+      h1(class="font-headline-lg text-headline-lg text-primary uppercase mb-2") Make Offer
+      p(class="text-on-surface-variant font-body-md") Specify the product details and submit your offer.
+
+    form(id="offer-form" class="grid grid-cols-1 lg:grid-cols-2 gap-8")
+
+      //- Left: Product Info
+      div(class="space-y-6")
+        //- Image Upload
+        div(
+          id="image-upload-area"
+          class="bg-surface-container border-2 border-dashed border-surface-variant aspect-[4/3] flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all overflow-hidden relative group"
+        )
+          img#image-preview(src="" alt="" class="hidden w-full h-full object-contain p-4")
+          div#image-placeholder(class="flex flex-col items-center gap-3")
+            span(class="material-symbols-outlined text-5xl text-primary/40 group-hover:text-primary transition-all") add_a_photo
+            p(class="font-label-caps text-[11px] text-on-surface-variant") CLICK TO UPLOAD IMAGE
+          input#image-input(type="file" name="imageCover" accept="image/*" class="hidden")
+
+        //- Type Selector
+        div(class="bg-surface-container border border-surface-variant p-6 space-y-5")
+          h2(class="font-headline-md text-primary") Product Type
+          div(class="flex gap-4")
+            label(class="flex-1 cursor-pointer")
+              input(type="radio" name="productType" value="gadget" checked class="peer hidden")
+              div(class="border-2 border-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 p-4 text-center transition-all")
+                span(class="material-symbols-outlined text-2xl text-primary/50 peer-checked:text-primary block mb-1") devices
+                span(class="font-label-caps text-[11px] text-on-surface-variant peer-checked:text-primary") GADGET
+            label(class="flex-1 cursor-pointer")
+              input(type="radio" name="productType" value="component" class="peer hidden")
+              div(class="border-2 border-surface-variant peer-checked:border-primary peer-checked:bg-primary/5 p-4 text-center transition-all")
+                span(class="material-symbols-outlined text-2xl text-primary/50 peer-checked:text-primary block mb-1") memory
+                span(class="font-label-caps text-[11px] text-on-surface-variant peer-checked:text-primary") COMPONENT
+
+        //- Name & Category
+        div(class="bg-surface-container border border-surface-variant p-6 space-y-5")
+          h2(class="font-headline-md text-primary") Product Details
+          div(class="space-y-2")
+            label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Name
+            input(type="text" name="name" required placeholder="e.g. AeroX Phantom X1" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+          div(class="space-y-2")
+            label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Category
+            //- Gadget categories
+            select#gadget-category(name="category" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+              option(value="keyboard") Keyboard
+              option(value="mouse") Mouse
+              option(value="audio") Audio
+              option(value="streaming") Streaming
+              option(value="ambient-lighting") Ambient Lighting
+            //- Component categories
+            select#component-category(name="category" disabled class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all hidden")
+              option(value="cpu") CPU
+              option(value="gpu") GPU
+              option(value="ram") RAM
+              option(value="case") Case
+
+        //- Price & Stock
+        div(class="bg-surface-container border border-surface-variant p-6 space-y-5")
+          h2(class="font-headline-md text-primary") Pricing
+          div(class="grid grid-cols-2 gap-4")
+            div(class="space-y-2")
+              label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Retail Price ($)
+              input(type="number" name="price" step="0.01" min="0" required placeholder="0.00" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface font-accent-stat px-4 py-3 outline-none transition-all")
+            div(class="space-y-2")
+              label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Stock
+              input(type="number" name="stock" min="0" value="0" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface font-accent-stat px-4 py-3 outline-none transition-all")
+          div(class="space-y-2")
+            label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Your Offer Price ($)
+            div(class="relative")
+              span(class="absolute left-4 top-1/2 -translate-y-1/2 font-accent-stat text-primary/50") $
+              input(type="number" name="offerPrice" step="0.01" min="0" required placeholder="0.00" class="w-full bg-background border-2 border-primary-container/30 focus:border-primary text-white font-accent-stat text-headline-md py-4 pl-10 pr-4 outline-none transition-all placeholder:text-surface-variant")
+
+        //- Gadget Specs
+        #gadget-specs(class="bg-surface-container border border-surface-variant p-6 space-y-5")
+          h2(class="font-headline-md text-primary") Gadget Specs
+          div(class="grid grid-cols-2 gap-4")
+            div(class="space-y-2")
+              label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Connectivity
+              select(name="connectivity" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+                option(value="wired") Wired
+                option(value="wireless") Wireless
+                option(value="hybrid") Hybrid
+            div(class="space-y-2")
+              label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Weight (g)
+              input(type="number" name="weight" min="0" placeholder="e.g. 85" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+          div(class="space-y-2")
+            label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Sensor
+            input(type="text" name="sensor" placeholder="e.g. PAW3395" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+          div(class="space-y-2")
+            label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Switch Type
+            input(type="text" name="switchType" placeholder="e.g. Optical" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+          div(class="space-y-2")
+            label(class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[11px]") Battery Life
+            input(type="text" name="batteryLife" placeholder="e.g. 200 hours" class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+
+        //- Component Specs (dynamic key-value)
+        #component-specs(class="hidden bg-surface-container border border-surface-variant p-6 space-y-5")
+          h2(class="font-headline-md text-primary") Component Specs
+          #spec-rows.space-y-3
+            div(class="spec-row flex gap-3")
+              input(type="text" name="specKey[]" placeholder="Key (e.g. Cores)" class="flex-1 bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+              input(type="text" name="specValue[]" placeholder="Value (e.g. 16)" class="flex-1 bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all")
+          button#add-spec-btn(type="button" class="font-label-caps text-[11px] text-primary border border-primary/30 px-4 py-2 hover:bg-primary/5 transition-all") + ADD SPEC
+
+      //- Right: Notes + Submit
+      div(class="space-y-6 lg:sticky lg:top-24 lg:self-start")
+        div(class="bg-surface-container border border-surface-variant p-6 space-y-5")
+          h2(class="font-headline-md text-primary") Notes
+          textarea(name="adminNote" rows="6" placeholder="Internal notes for this offer..." class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface font-body-md p-4 outline-none transition-all placeholder:text-surface-variant resize-none")
+
+        div(class="bg-surface-container border border-surface-variant p-6 space-y-4")
+          button(type="submit" class="w-full bg-primary-container text-on-primary font-bold py-4 text-label-caps tracking-widest hover:bg-[#FFAA00] transition-colors flex items-center justify-center gap-3")
+            span(class="material-symbols-outlined") send
+            | SUBMIT OFFER
+          p(class="text-[11px] text-on-surface-variant opacity-50 text-center") Offers are binding for 24 hours. Evaluation based on market data and stock.
+
+block scripts
+  script.
+    const productTypeInputs = document.querySelectorAll('input[name="productType"]');
+    const gadgetSpecs = document.getElementById('gadget-specs');
+    const componentSpecs = document.getElementById('component-specs');
+    const gadgetCategory = document.getElementById('gadget-category');
+    const componentCategory = document.getElementById('component-category');
+
+    productTypeInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        if (input.value === 'component') {
+          gadgetSpecs.classList.add('hidden');
+          componentSpecs.classList.remove('hidden');
+          gadgetCategory.classList.add('hidden');
+          gadgetCategory.disabled = true;
+          componentCategory.classList.remove('hidden');
+          componentCategory.disabled = false;
+        } else {
+          gadgetSpecs.classList.remove('hidden');
+          componentSpecs.classList.add('hidden');
+          gadgetCategory.classList.remove('hidden');
+          gadgetCategory.disabled = false;
+          componentCategory.classList.add('hidden');
+          componentCategory.disabled = true;
+        }
+      });
+    });
+
+    const addSpecBtn = document.getElementById('add-spec-btn');
+    const specRows = document.getElementById('spec-rows');
+    if (addSpecBtn) {
+      addSpecBtn.addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'spec-row flex gap-3 items-center';
+        row.innerHTML = '<input type="text" name="specKey[]" placeholder="Key" class="flex-1 bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all"><input type="text" name="specValue[]" placeholder="Value" class="flex-1 bg-background border-2 border-outline focus:border-primary text-on-surface px-4 py-3 outline-none transition-all"><button type="button" class="material-symbols-outlined text-red-400 hover:text-red-300 text-xl remove-spec">close</button>';
+        specRows.appendChild(row);
+        row.querySelector('.remove-spec').addEventListener('click', () => row.remove());
+      });
+    }
+
+    const imageUploadArea = document.getElementById('image-upload-area');
+    const imageInput = document.getElementById('image-input');
+    const imagePreview = document.getElementById('image-preview');
+    const imagePlaceholder = document.getElementById('image-placeholder');
+
+    if (imageUploadArea && imageInput) {
+      imageUploadArea.addEventListener('click', () => imageInput.click());
+      imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          imagePreview.src = ev.target.result;
+          imagePreview.classList.remove('hidden');
+          imagePlaceholder.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const offerForm = document.getElementById('offer-form');
+    if (offerForm) {
+      offerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(offerForm);
+        try {
+          const res = await fetch('/api/v1/offers', {
+            method: 'POST',
+            body: formData,
+          });
+          const result = await res.json();
+          if (res.ok) {
+            alert('Offer Transmitted to Command Center');
+            window.location.href = '/';
+          } else {
+            alert(result.message || 'Offer transmission failed.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Connection error. Try again.');
+        }
+      });
+    }

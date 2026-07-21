@@ -1,0 +1,110 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12")
+    //- Step Indicator
+    div(class="flex items-center justify-center gap-4 mb-16")
+      div(class="flex items-center gap-3")
+        div(class="w-8 h-8 bg-primary text-on-primary font-bold flex items-center justify-center") 1
+        span(class="font-headline-md text-primary") SHIPPING & PAYMENT
+      span(class="text-surface-variant font-headline-md text-3xl") →
+      div(class="flex items-center gap-3 opacity-40")
+        div(class="w-8 h-8 bg-surface-variant text-on-surface-variant font-bold flex items-center justify-center") 2
+        span(class="font-headline-md text-on-surface-variant") CONFIRM ORDER
+
+    div(class="flex flex-col lg:flex-row gap-gutter")
+      //- ── LEFT: FORM ──
+      section(class="lg:w-3/5 space-y-12")
+        form(id="checkout-form" class="space-y-12")
+          //- Shipping
+          div
+            h2(class="font-headline-md text-2xl text-primary mb-6 border-l-4 border-primary pl-4 uppercase") SHIPPING INFORMATION
+            div(class="grid grid-cols-1 md:grid-cols-2 gap-4")
+              div(class="space-y-1 md:col-span-2")
+                label(class="font-label-caps text-on-surface-variant") DELIVERY ADDRESS
+                input(type="text" required id="ship-address" class="w-full bg-[#0d0d0d] border border-outline-variant p-4 text-white font-body-md focus:border-primary transition-all" placeholder="Street, City, ZIP")
+
+          //- Payment Info (Stripe handles this)
+          div
+            h2(class="font-headline-md text-2xl text-primary mb-6 border-l-4 border-primary pl-4 uppercase") PAYMENT METHOD
+            div(class="border-2 border-primary bg-[#111111] p-6 flex items-center gap-4")
+              span(class="material-symbols-outlined text-primary text-3xl") credit_card
+              div
+                span(class="font-headline-md text-white block") Secure Card Payment via Stripe
+                span(class="text-on-surface-variant text-sm") You will be redirected to Stripe to complete payment.
+
+          button#pay-btn(type="submit" class="w-full h-[60px] bg-primary text-black font-headline-md text-xl font-bold uppercase tracking-widest hover:bg-[#FFAA00] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3")
+            span#pay-btn-text PROCEED TO PAYMENT
+            span#pay-spinner(class="material-symbols-outlined animate-spin hidden") sync
+
+      //- ── RIGHT: SUMMARY ──
+      aside(class="lg:w-2/5")
+        div(class="sticky top-28 bg-[#111111] border border-outline-variant p-8 space-y-8")
+          h3(class="font-headline-md text-xl text-white border-b border-outline-variant pb-4") ORDER REVIEW
+
+          div(class="space-y-6")
+            if cart && cart.items && cart.items.length
+              each item in cart.items
+                div(class="flex gap-4")
+                  div(class="w-16 h-16 bg-surface-container-low border border-outline-variant flex-shrink-0 flex items-center justify-center overflow-hidden")
+                    if item.product && item.product.imageCover
+                      img(src=`/images/products/${item.product.imageCover}` alt=item.product.name class="w-full h-full object-cover")
+                    else
+                      span(class="material-symbols-outlined text-outline-variant") inventory_2
+                  div(class="flex-grow")
+                    if item.product
+                      h4(class="font-headline-md text-white leading-tight") #{item.product.name}
+                      p(class="text-on-surface-variant font-label-caps text-[10px] mt-1") QTY: #{item.quantity}
+                      p(class="text-primary font-accent-stat mt-1") $#{(item.product.price * item.quantity).toFixed(2)}
+
+          div(class="space-y-4 pt-6 border-t border-outline-variant")
+            div(class="flex justify-between font-label-caps text-on-surface-variant")
+              span SUBTOTAL
+              span(class="text-white") $#{totalPrice.toFixed(2)}
+            div(class="flex justify-between font-label-caps text-on-surface-variant")
+              span SHIPPING
+              span(class="text-green-400") FREE
+            div(class="flex justify-between items-center pt-4 border-t border-outline-variant")
+              span(class="font-headline-md text-white text-xl") TOTAL
+              span(class="font-accent-stat text-3xl text-primary") $#{totalPrice.toFixed(2)}
+
+          div(class="flex items-center justify-center gap-3 bg-surface-container-low py-4 border border-outline-variant/30 mt-4")
+            span(class="material-symbols-outlined text-green-500" style="font-variation-settings:'FILL' 1;") lock
+            span(class="font-label-caps text-[10px] text-on-secondary-container") SECURE ENCRYPTED TRANSACTION
+
+block scripts
+  script.
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('pay-btn');
+      const btnText = document.getElementById('pay-btn-text');
+      const spinner = document.getElementById('pay-spinner');
+      btn.disabled = true;
+      btnText.textContent = 'REDIRECTING...';
+      spinner.classList.remove('hidden');
+
+      const shippingAddress = document.getElementById('ship-address').value;
+
+      try {
+        const res = await fetch('/api/v1/checkout/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shippingAddress })
+        });
+        const data = await res.json();
+        if (res.ok && data.url) {
+          window.location.href = data.url;
+        } else {
+          alert(data.message || 'Checkout failed. Please try again.');
+          btn.disabled = false;
+          btnText.textContent = 'PROCEED TO PAYMENT';
+          spinner.classList.add('hidden');
+        }
+      } catch(err) {
+        console.error(err);
+        alert('Connection error. Try again.');
+        btn.disabled = false;
+        btnText.textContent = 'PROCEED TO PAYMENT';
+        spinner.classList.add('hidden');
+      }
+    });

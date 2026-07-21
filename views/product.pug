@@ -1,0 +1,299 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12")
+    //- 50/50 Split Product Section
+    section(class="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-start")
+      //- Left: Gallery
+      div(class="space-y-gutter")
+        div(class="relative aspect-square bg-[#111111] border border-surface-variant flex items-center justify-center overflow-hidden group")
+          div(class="absolute inset-0 radial-glow z-0")
+          img(
+            id="main-product-image"
+            src=(gadget.imageCover ? `/images/products/${gadget.imageCover}` : "https://lh3.googleusercontent.com/aida-public/AB6AXuAQxWQK_2aSZgMSdW2ceswDLX7LxTxaGa1nMBqStXeZ9jhHoYT2ulBXeDkV06aY-vDggUYtbWG_PqSYj05mgCERcv8jSm8yKWZKPSuUGNsyrANkOA7V0QFUmBHAvoFQ9jJIQu1PycHuodvhDn4cksXvdlLYXhuFGpYaiLseS3D4yRpTTaOmXuXm4RCXNLeGSIlHZW1Opz86wwFCW5rgpNazrPaNnhGTNlpwkARhMoXe-uEVgOluWxLiwZ8CjfqAo6FFGYOX_QUiBhto")
+            alt=gadget.name
+            class="relative z-10 w-4/5 h-auto object-contain transition-transform duration-500 group-hover:scale-105"
+          )
+          div(class="absolute top-4 right-4 z-20")
+            span(class="bg-surface-container-highest border border-surface-variant px-3 py-1 font-label-caps text-label-caps text-primary") PRO EDITION
+
+        //- Thumbnails
+        div(class="grid grid-cols-4 gap-4")
+          if gadget.images && gadget.images.length
+            each img, idx in gadget.images
+              button(data-src=`/images/products/${img}` class="thumbnail-btn aspect-square bg-[#111111] border border-surface-variant p-2 hover:border-primary transition-colors")
+                img(src=`/images/products/${img}` alt="spec view" class="w-full h-full object-contain")
+          else
+            //- Placeholders matching layout
+            each placeholder in [1, 2, 3, 4]
+              button(class="aspect-square bg-[#111111] border border-surface-variant p-2 hover:border-primary transition-colors")
+                span(class="material-symbols-outlined text-outline-variant text-2xl flex items-center justify-center h-full") photo
+
+      //- Right: Info
+      div(class="flex flex-col h-full py-2")
+        div(class="mb-4")
+          span(class="bg-primary-container text-on-primary-container px-3 py-1 font-label-caps text-[10px] tracking-widest inline-block mb-4") #{gadget.category.toUpperCase()}
+          h1(class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary uppercase mb-2") #{gadget.name}
+          div(class="flex items-center gap-4 mb-6")
+            p(class="font-accent-stat text-3xl text-on-surface") $#{gadget.price}
+            div(class="h-4 w-[1px] bg-surface-variant")
+            div(class="flex items-center gap-1 text-primary-container")
+              span(class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;") star
+              span(class="text-on-surface-variant font-label-caps text-[10px] ml-1") #{gadget.ratingsAverage} (#{gadget.ratingsQuantity} REVIEWS)
+
+        p(class="text-on-surface-variant font-body-md mb-8 max-w-lg")
+          | Engineered for professional esports athletes. Custom hardware parameters tuned for optimal execution, zero latency, and ultimate precision feedback.
+
+        //- Connectivity Badges
+        if !isComponent
+          div(class="flex gap-4 mb-8")
+            if gadget.specs && gadget.specs.connectivity
+              div(class="flex items-center gap-2 bg-surface-container-low border border-surface-variant px-4 py-2")
+                span(class="material-symbols-outlined text-primary text-lg") settings_input_hdmi
+                span(class="font-label-caps text-label-caps") #{gadget.specs.connectivity.toUpperCase()}
+            if gadget.specs && gadget.specs.weight
+              div(class="flex items-center gap-2 bg-surface-container-low border border-surface-variant px-4 py-2")
+                span(class="material-symbols-outlined text-primary text-lg") scale
+                span(class="font-label-caps text-label-caps") #{gadget.specs.weight}G WEIGHT
+
+        //- Specs Table
+        div(class="border border-surface-variant mb-10 overflow-hidden")
+          div(class="bg-surface-container py-2 px-4 border-b border-surface-variant")
+            h3(class="font-label-caps text-label-caps text-primary") TECHNICAL SPECIFICATIONS
+          table(class="w-full font-accent-stat text-sm")
+            tbody
+              if isComponent && gadget.specifications
+                each value, key in gadget.specifications
+                  tr(class="border-b border-surface-variant")
+                    td(class="py-4 px-4 text-on-surface-variant") #{key.toUpperCase()}
+                    td(class="py-4 px-4 text-right text-on-surface") #{value}
+              else
+                if gadget.specs && gadget.specs.sensor
+                  tr(class="border-b border-surface-variant")
+                    td(class="py-4 px-4 text-on-surface-variant") SENSOR
+                    td(class="py-4 px-4 text-right text-on-surface") #{gadget.specs.sensor}
+                if gadget.specs && gadget.specs.switchType
+                  tr(class="border-b border-surface-variant")
+                    td(class="py-4 px-4 text-on-surface-variant") SWITCHES
+                    td(class="py-4 px-4 text-right text-on-surface") #{gadget.specs.switchType}
+                if gadget.specs && gadget.specs.batteryLife
+                  tr(class="border-b border-surface-variant")
+                    td(class="py-4 px-4 text-on-surface-variant") BATTERY LIFE
+                    td(class="py-4 px-4 text-right text-on-surface") #{gadget.specs.batteryLife}
+              tr
+                td(class="py-4 px-4 text-on-surface-variant") STOCK STATUS
+                td(class="py-4 px-4 text-right text-on-surface") #{gadget.stock > 0 ? `${gadget.stock} UNITS AVAILABLE` : 'OUT OF STOCK'}
+
+        //- CTA Section
+        div(class="mt-auto space-y-4")
+          if gadget.stock > 0
+            div(class="flex items-center gap-3 text-green-500 mb-2")
+              span(class="relative flex h-2 w-2")
+                span(class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75")
+                span(class="relative inline-flex rounded-full h-2 w-2 bg-green-500")
+              span(class="font-label-caps text-[10px]") IN STOCK - READY TO DEPLOY
+            button(
+              id="add-to-cart-action"
+              data-id=gadget._id
+              class="w-full bg-primary-container text-on-primary-container font-headline-md py-5 hover:bg-primary-fixed-dim transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-3"
+            )
+              span(class="material-symbols-outlined") shopping_bag
+              | ADD TO CART
+          else
+            div(class="flex items-center gap-3 text-red-500 mb-2")
+              span(class="relative inline-flex rounded-full h-2 w-2 bg-red-500")
+              span(class="font-label-caps text-[10px]") OUT OF STOCK - EN ROUTE
+            button(disabled class="w-full bg-surface-variant text-on-secondary-container font-headline-md py-5 cursor-not-allowed flex items-center justify-center gap-3")
+              span(class="material-symbols-outlined") block
+              | OUT OF STOCK
+
+    //- Product Features Bento
+    section(class="mt-24")
+      h2(class="font-headline-lg text-headline-md md:text-headline-lg text-primary mb-12 border-l-4 border-primary pl-6 uppercase") Battle-Ready Engineering
+      div(class="grid grid-cols-1 md:grid-cols-3 gap-gutter")
+        div(class="bg-[#111111] border border-surface-variant p-8 group hover:border-primary transition-all duration-500")
+          span(class="material-symbols-outlined text-primary text-4xl mb-6") bolt
+          h3(class="font-headline-md mb-4 uppercase") LIGHTSPEED SYSTEM
+          p(class="text-on-surface-variant") 0.1ms latency execution. Our proprietary interface protocol is designed for competitive, crowded tournament play.
+        div(class="bg-[#111111] border border-surface-variant p-8 group hover:border-primary transition-all duration-500")
+          span(class="material-symbols-outlined text-primary text-4xl mb-6") speed
+          h3(class="font-headline-md mb-4 uppercase") PRECISION TUNING
+          p(class="text-on-surface-variant") Highly customizable settings via configuration workspace tool. Save custom presets directly to hardware onboard memory.
+        div(class="bg-[#111111] border border-surface-variant p-8 group hover:border-primary transition-all duration-500")
+          span(class="material-symbols-outlined text-primary text-4xl mb-6") battery_charging_full
+          h3(class="font-headline-md mb-4 uppercase") TOURNAMENT ENDURANCE
+          p(class="text-on-surface-variant") High capacity battery and fast-charge technology ensures your gear is online for entire campaigns without power outages.
+
+    //- Reviews Section
+    section(class="mt-24 pt-24 border-t border-surface-variant")
+      div(class="grid grid-cols-1 lg:grid-cols-12 gap-gutter")
+        div(class="lg:col-span-4")
+          h2(class="font-headline-lg text-headline-md md:text-headline-lg text-primary mb-4 uppercase") USER RATINGS
+          div(class="flex items-center gap-4 mb-8")
+            span(class="font-display-xl text-6xl text-on-surface") #{gadget.ratingsAverage}
+            div
+              div(class="flex text-primary-container")
+                span(class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;") star
+              p(class="text-on-surface-variant font-label-caps text-xs") BASED ON #{gadget.ratingsQuantity} REVIEWS
+
+        div(class="lg:col-span-8 space-y-gutter")
+          if gadget.reviews && gadget.reviews.length
+            each r in gadget.reviews
+              div(class="bg-[#111111] border border-surface-variant p-6")
+                div(class="flex justify-between items-start mb-4")
+                  div
+                    h4(class="font-headline-md text-primary text-lg") REVIEW
+                    p(class="text-on-surface-variant font-label-caps text-[10px]") #{r.user ? r.user.name : 'AeroX Operator'}
+                  div(class="flex text-primary-container")
+                    - for (let i = 0; i < Math.round(r.rating); i++)
+                      span(class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;") star
+                p(class="text-on-surface font-body-md") #{r.review}
+          else
+            p(class="text-on-surface-variant text-center py-8") NO INTEL REVIEWS LOGGED FOR THIS GADGET YET.
+
+          //- Review Form (logged-in users only, gadgets only)
+          if user && !isComponent
+            div(class="mt-12 bg-[#111111] border border-surface-variant p-8")
+              h3(class="font-headline-md text-primary text-lg mb-6") SUBMIT INTEL REPORT
+              form(id="review-form" class="space-y-6")
+                div(class="space-y-2")
+                  label(class="font-label-caps text-on-surface-variant text-[11px]") RATING
+                  div(id="star-rating" class="flex gap-1 cursor-pointer")
+                    - for (let i = 1; i <= 5; i++)
+                      span(data-value=i class="material-symbols-outlined text-2xl text-surface-variant hover:text-primary-container transition-colors star-btn" style="font-variation-settings: 'FILL' 0;") star
+                  input(type="hidden" id="rating-value" name="rating" value="0")
+                div(class="space-y-2")
+                  label(class="font-label-caps text-on-surface-variant text-[11px]") YOUR REVIEW
+                  textarea(id="review-text" name="review" rows="4" required maxlength="500" placeholder="Share your experience with this product..." class="w-full bg-background border-2 border-outline focus:border-primary text-on-surface font-body-md p-4 outline-none transition-all placeholder:text-surface-variant resize-none")
+                  p(class="text-on-surface-variant text-[11px] text-right") <span id="char-count">0</span>/500
+                button(type="submit" class="bg-primary text-on-primary font-label-caps text-label-caps px-10 py-3 font-bold hover:bg-[#FFAA00] transition-all active:scale-95") SUBMIT REVIEW
+          else if !user && !isComponent
+            p(class="mt-8 text-center text-on-surface-variant font-label-caps text-[11px]")
+              a(href="/login" class="text-primary underline hover:text-primary-container transition-all") LOG IN
+              |  TO SUBMIT A REVIEW.
+
+block scripts
+  script.
+    const mainImage = document.getElementById('main-product-image');
+    document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const src = btn.dataset.src;
+        if (src && mainImage) {
+          mainImage.src = src;
+          document.querySelectorAll('.thumbnail-btn').forEach(b => b.classList.replace('border-primary', 'border-surface-variant'));
+          btn.classList.replace('border-surface-variant', 'border-primary');
+        }
+      });
+    });
+
+    const cartBtn = document.getElementById('add-to-cart-action');
+    if (cartBtn) {
+      cartBtn.addEventListener('click', async (e) => {
+        const id = e.currentTarget.dataset.id;
+        try {
+          const res = await fetch('/api/v1/carts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product: id, quantity: 1 })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            cartBtn.textContent = 'ADDED TO LOADOUT';
+            cartBtn.classList.replace('bg-primary-container', 'bg-green-500');
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+          } else {
+            alert(data.message || 'Verification failure. Login is required.');
+          }
+        } catch(err) {
+          console.error(err);
+        }
+      });
+    }
+
+    // Star rating selector
+    const ratingValue = document.getElementById('rating-value');
+    const starBtns = document.querySelectorAll('#star-rating .star-btn');
+    if (ratingValue && starBtns.length) {
+      starBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+          const val = parseInt(btn.dataset.value);
+          starBtns.forEach(s => {
+            const v = parseInt(s.dataset.value);
+            if (v <= val) {
+              s.classList.replace('text-surface-variant', 'text-primary-container');
+              s.style.setProperty('font-variation-settings', "'FILL' 1");
+            } else {
+              s.classList.replace('text-primary-container', 'text-surface-variant');
+              s.style.setProperty('font-variation-settings', "'FILL' 0");
+            }
+          });
+        });
+        btn.addEventListener('click', () => {
+          ratingValue.value = btn.dataset.value;
+        });
+      });
+      const starContainer = document.getElementById('star-rating');
+      if (starContainer) {
+        starContainer.addEventListener('mouseleave', () => {
+          const val = parseInt(ratingValue.value);
+          starBtns.forEach(s => {
+            const v = parseInt(s.dataset.value);
+            if (v <= val) {
+              s.classList.replace('text-surface-variant', 'text-primary-container');
+              s.style.setProperty('font-variation-settings', "'FILL' 1");
+            } else {
+              s.classList.replace('text-primary-container', 'text-surface-variant');
+              s.style.setProperty('font-variation-settings', "'FILL' 0");
+            }
+          });
+        });
+      }
+    }
+
+    // Character counter
+    const reviewText = document.getElementById('review-text');
+    const charCount = document.getElementById('char-count');
+    if (reviewText && charCount) {
+      reviewText.addEventListener('input', () => {
+        charCount.textContent = reviewText.value.length;
+      });
+    }
+
+    // Review form submission
+    const reviewForm = document.getElementById('review-form');
+    if (reviewForm) {
+      reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rating = parseInt(document.getElementById('rating-value').value);
+        const review = document.getElementById('review-text').value.trim();
+        if (!rating || rating < 1) {
+          alert('Please select a rating.');
+          return;
+        }
+        if (!review) {
+          alert('Please write a review.');
+          return;
+        }
+        try {
+          const res = await fetch('/api/v1/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              gadget: '#{gadget._id}',
+              rating,
+              review
+            })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            alert('Review submitted successfully.');
+            window.location.reload();
+          } else {
+            alert(data.message || 'Failed to submit review.');
+          }
+        } catch(err) {
+          console.error(err);
+          alert('Connection error. Try again.');
+        }
+      });
+    }

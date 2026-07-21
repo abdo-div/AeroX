@@ -1,0 +1,8 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-32 flex flex-col items-center justify-center text-center")
+    h1(class="font-display-xl text-6xl text-primary mb-6") 404
+    h2(class="font-headline-lg text-headline-lg text-on-surface mb-4") #{msg || 'ACCESS DENIED'}
+    p(class="text-on-surface-variant font-body-md mb-12 max-w-md") The target hardware could not be located in our database. Verify coordinates and try again.
+    a(href="/shop" class="px-10 py-4 bg-primary text-on-primary font-label-caps text-label-caps hover:bg-[#FFAA00] transition-colors") RETURN TO ARSENAL

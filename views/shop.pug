@@ -1,0 +1,159 @@
+extends layouts/base.pug
+
+block content
+  //- Hero Section
+  section(class="h-[307px] bg-surface-container-lowest flex items-center justify-center relative overflow-hidden")
+    h1(class="font-display-xl text-display-xl text-primary relative z-10 tracking-[0.2em]") THE ARSENAL
+
+  //- Main Content Area
+  main(class="max-w-container-max mx-auto px-margin-desktop py-12 flex flex-col md:flex-row gap-gutter")
+    //- Sidebar Filters
+    aside(class="w-full md:w-[280px] shrink-0 space-y-12")
+      form(id="filter-form" action="/shop" method="GET" class="space-y-12")
+        //- Categories
+        div
+          h3(class="font-label-caps text-label-caps text-primary-fixed-dim mb-6") CATEGORIES
+          div(class="space-y-4")
+            each cat in [{slug:'keyboard', label:'Keyboards'}, {slug:'mouse', label:'Mice'}, {slug:'audio', label:'Audio'}, {slug:'streaming', label:'Streaming'}, {slug:'ambient-lighting', label:'Lighting'}, {slug:'cpu', label:'CPUs'}, {slug:'gpu', label:'GPUs'}, {slug:'ram', label:'RAM Memory'}, {slug:'case', label:'Chassis/Cases'}]
+              label(class="flex items-center gap-3 cursor-pointer group")
+                input(
+                  type="checkbox"
+                  name="category"
+                  value=cat.slug
+                  checked=(currentFilters && currentFilters.category && (Array.isArray(currentFilters.category) ? currentFilters.category.includes(cat.slug) : currentFilters.category === cat.slug))
+                  class="appearance-none w-4 h-4 border border-outline bg-transparent checked:bg-primary-container checked:border-primary-container transition-all"
+                )
+                span(class="font-body-md text-on-surface-variant group-hover:text-primary") #{cat.label}
+
+        //- Price Range
+        div
+          h3(class="font-label-caps text-label-caps text-primary-fixed-dim mb-6") PRICE RANGE
+          input(
+            type="range"
+            name="price[lte]"
+            min="0"
+            max="1000"
+            step="10"
+            value=(currentFilters && currentFilters.price && currentFilters.price.lte || 1000)
+            class="w-full h-1"
+            id="price-range-slider"
+          )
+          div(class="flex justify-between mt-4 font-accent-stat text-body-md text-secondary")
+            <span>$0</span>
+            <span id="price-limit-display">$#{currentFilters && currentFilters.price && currentFilters.price.lte || 1000}</span>
+
+        //- Connectivity
+        div
+          h3(class="font-label-caps text-label-caps text-primary-fixed-dim mb-6") CONNECTIVITY
+          div(class="space-y-4")
+            label(class="flex items-center gap-3 cursor-pointer group")
+              input(
+                type="radio"
+                name="connectivity"
+                value=""
+                checked=(!currentFilters || !currentFilters.connectivity)
+                class="appearance-none w-4 h-4 border border-outline bg-transparent checked:bg-primary-container checked:border-primary-container transition-all"
+              )
+              span(class="font-body-md text-on-surface-variant group-hover:text-primary") Any
+            each conn in [{val:'wireless', label:'Wireless Pro'}, {val:'wired', label:'Wired Pro'}, {val:'hybrid', label:'Hybrid/Dual'}]
+              label(class="flex items-center gap-3 cursor-pointer group")
+                input(
+                  type="radio"
+                  name="connectivity"
+                  value=conn.val
+                  checked=(currentFilters && currentFilters.connectivity === conn.val)
+                  class="appearance-none w-4 h-4 border border-outline bg-transparent checked:bg-primary-container checked:border-primary-container transition-all"
+                )
+                span(class="font-body-md text-on-surface-variant group-hover:text-primary") #{conn.label}
+
+        //- Apply Button
+        div(class="flex gap-3")
+          button(type="submit" class="flex-1 py-4 bg-primary-container text-on-primary font-label-caps text-label-caps hover:bg-[#FFAA00] transition-colors active:scale-95 duration-150")
+            | APPLY FILTERS
+          a(href="/shop" class="py-4 px-6 border border-outline text-on-surface-variant font-label-caps text-label-caps hover:border-primary-container hover:text-primary transition-colors text-center")
+            | CLEAR
+
+    //- Product Grid Section
+    section(class="flex-1")
+      //- Sort & Results Bar
+      div(class="flex justify-between items-center mb-8 pb-4 border-b border-surface-variant")
+        span(class="font-body-md text-secondary") SHOWING #{gadgets.length} PRODUCTS
+        div(class="relative group")
+          select(name="sort" form="filter-form" onchange="this.form.submit()" class="appearance-none bg-surface border border-outline px-6 py-2 pr-10 font-label-caps text-label-caps text-primary cursor-pointer focus:border-primary-container focus:ring-0")
+            option(value="" selected=(!currentFilters.sort)) DEFAULT SORTING
+            option(value="price" selected=(currentFilters.sort === 'price')) SORT: PRICE LOW-HIGH
+            option(value="-price" selected=(currentFilters.sort === '-price')) SORT: PRICE HIGH-LOW
+            option(value="-ratingsAverage" selected=(currentFilters.sort === '-ratingsAverage')) SORT: POPULARITY
+          span(class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary") expand_more
+
+      //- Grid (3-column)
+      div(class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter")
+        if gadgets && gadgets.length
+          each p in gadgets
+            a(href=`/product/${p.slug}` class="rgb-border bg-surface-container overflow-hidden group block")
+              div(class="relative h-[240px] overflow-hidden bg-surface-container-highest")
+                if p.isFeatured
+                  div(class="absolute top-4 left-4 z-10 px-3 py-1 bg-primary-container text-on-primary-container font-label-caps text-[10px] tracking-widest") PRO
+                img(
+                  src=(p.imageCover ? `/images/products/${p.imageCover}` : "https://lh3.googleusercontent.com/aida-public/AB6AXuDRwlM1ndzN85hdOtzGV2BOx_vP89-4fOK4ELprCozJikhMCduP-GWRhxNb5iJibaDs-gnJZUZlbw5-2LDV7rlrisDY_v22xNdbi1zqDT1XmJXRgQCkiYpdpdpf7TQcczK2JdjuMpPF5sUX4RcYfTneJ1ujSFcAxSTWw-TAd9SNGljLO14Da0jXHK23DjrNNTpNxQN5VVNmC9AR8zFSiAV2r7uCEgYDww-5XKCbJCSers_xSkP2RiNCmNBOP8nflwq6jnO6vj08jJ3u")
+                  alt=p.name
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                )
+                div(class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60")
+              div(class="p-6")
+                div(class="flex justify-between items-start mb-2")
+                  h4(class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors") #{p.name}
+                  span(class="font-accent-stat text-primary-fixed-dim") $#{p.price}
+                p(class="text-on-surface-variant text-sm mb-6 line-clamp-2")
+                  if p.specs && p.specs.sensor
+                    | Pro-grade tracking with #{p.specs.sensor} sensor technology. Connectivity: #{p.specs.connectivity}.
+                  else
+                    | Precision engineered hardware for competitive dominance. Built to endure the most demanding tactical environments.
+                div(class="flex gap-2 relative z-10")
+                  button(
+                    type="button"
+                    class="add-to-cart-btn flex-1 py-3 border-2 border-primary-container text-primary-container font-label-caps text-[10px] hover:bg-primary-container hover:text-on-primary transition-all duration-300"
+                    data-id=p._id
+                  ) ADD TO CART
+                  button(type="button" class="w-12 h-12 flex items-center justify-center border-2 border-outline hover:border-primary-container transition-colors")
+                    span(class="material-symbols-outlined text-on-surface") favorite
+        else
+          div(class="col-span-full text-center py-20 bg-surface-container")
+            p(class="text-on-surface-variant font-headline-md") NO GADGETS MATCHING ACCESS SPECS FOUND.
+
+block scripts
+  script.
+    const slider = document.getElementById('price-range-slider');
+    const display = document.getElementById('price-limit-display');
+    if (slider && display) {
+      slider.addEventListener('input', (e) => {
+        display.textContent = `$${e.target.value}`;
+      });
+    }
+
+    // Add to cart fetch
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = e.currentTarget.dataset.id;
+        if (!id) return;
+        try {
+          const res = await fetch('/api/v1/carts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product: id, quantity: 1 })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            e.target.textContent = 'ADDED TO LOADOUT';
+            e.target.classList.replace('text-primary-container', 'text-on-primary');
+            e.target.classList.add('bg-primary-container');
+          } else {
+            alert(data.message || 'Access authorization failure. Are you logged in?');
+          }
+        } catch(err) {
+          console.error(err);
+        }
+      });
+    });

@@ -1,0 +1,103 @@
+extends layouts/base.pug
+
+block content
+  div(class="laser-grid fixed inset-0 z-0")
+  div(class="flex flex-col items-center w-full max-w-[520px] mx-auto relative z-10 py-20 px-margin-mobile md:px-0")
+    //- Branding
+    div(class="flex items-center gap-3 mb-8")
+      span(class="material-symbols-outlined text-primary-container text-4xl" style="font-variation-settings: 'FILL' 1;") bolt
+      span(class="font-display-xl text-headline-md font-bold tracking-tighter text-primary") AEROX
+
+    //- Card
+    main(class="card-container w-full bg-[#111111] border border-[#2a2a2a] p-10 relative overflow-hidden")
+      div(class="rgb-accent-line absolute top-0 left-0")
+      header(class="mb-8")
+        h1(class="font-headline-lg text-white mb-2 uppercase tracking-wide" style="font-size: 36px;") Join The Elite
+        p(class="font-body-md text-[#666666]") Create your AeroX account
+
+      form(class="space-y-6" id="signup-form")
+        div(class="space-y-2")
+          label(class="font-label-caps text-on-surface-variant uppercase text-[10px]") Full Name
+          input(type="text" required id="name" class="w-full h-14 bg-[#0d0d0d] border border-[#2a2a2a] px-4 text-white font-body-md focus-glow transition-all duration-200" placeholder="GORDON FREEMAN")
+        
+        div(class="space-y-2")
+          label(class="font-label-caps text-on-surface-variant uppercase text-[10px]") Email Address
+          input(type="email" required id="email" class="w-full h-14 bg-[#0d0d0d] border border-[#2a2a2a] px-4 text-white font-body-md focus-glow transition-all duration-200" placeholder="OPERATOR@AEROX.TECH")
+
+        div(class="space-y-2")
+          label(class="font-label-caps text-on-surface-variant uppercase text-[10px]") Password
+          input(type="password" required id="password" class="w-full h-14 bg-[#0d0d0d] border border-[#2a2a2a] px-4 text-white font-body-md focus-glow transition-all duration-200" placeholder="••••••••")
+
+        div(class="space-y-2")
+          label(class="font-label-caps text-on-surface-variant uppercase text-[10px]") Confirm Password
+          input(type="password" required id="passwordConfirm" class="w-full h-14 bg-[#0d0d0d] border border-[#2a2a2a] px-4 text-white font-body-md focus-glow transition-all duration-200" placeholder="••••••••")
+
+        button(type="submit" class="w-full h-[56px] bg-[#FFD700] text-[#080808] font-headline-md font-bold text-lg uppercase tracking-wider hover:bg-white transition-colors duration-300 active:scale-[0.98]")
+          | Create Account
+
+      div(class="relative my-8 flex items-center")
+        div(class="flex-grow border-t border-[#2a2a2a]")
+        span(class="mx-4 font-label-caps text-[#444444] text-[10px]") OR
+        div(class="flex-grow border-t border-[#2a2a2a]")
+
+      //- Google Sign-In Button
+      div(id="google-signup-btn" class="w-full min-h-[44px] flex items-center justify-center")
+
+      footer(class="mt-8 text-center")
+        p(class="font-body-md text-[#666666]")
+          | Already have an account? 
+          a(href="/login" class="text-primary-container font-bold hover:underline inline-flex items-center gap-1 ml-1 group")
+            | Log In
+            span(class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform") arrow_forward
+
+block scripts
+  script.
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+        if (password !== passwordConfirm) {
+          alert('Passwords do not match.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/v1/users/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, passwordConfirm })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            window.location.href = '/';
+          } else {
+            alert(data.message || 'Signup system validation rejected.');
+          }
+        } catch(err) {
+          console.error(err);
+        }
+      });
+    }
+
+    // Initialize Google Sign-In
+    function initGoogleSignup() {
+      if (typeof google === 'undefined' || !google.accounts) {
+        setTimeout(initGoogleSignup, 100);
+        return;
+      }
+      google.accounts.id.initialize({
+        client_id: '#{googleClientId}',
+        callback: handleGoogleCredential,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('google-signup-btn'),
+        { theme: 'outline', size: 'large', text: 'continue_with', width: 440, shape: 'rectangular' }
+      );
+    }
+    initGoogleSignup();
