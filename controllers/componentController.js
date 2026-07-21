@@ -1,7 +1,7 @@
 import Component from "../models/componentModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
-import APIFeatures from "../utils/apiFeatures.js"; // 💡 Import your class here!
+import APIFeatures from "../utils/APIFeatures.js"; // 💡 Import your class here!
 
 // 🔍 GET ALL COMPONENTS (Using your clean APIFeatures class)
 export const getAllComponents = catchAsync(async (req, res, next) => {
