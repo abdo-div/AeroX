@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Stripe from "stripe";
 import Cart from "../models/cartModel.js";
 import Order from "../models/orderModel.js";
@@ -5,12 +6,53 @@ import Gadget from "../models/gadgetModel.js";
 import Component from "../models/componentModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import { createCheckout } from "../services/moamalatService.js";
 
 let stripe;
 const getStripe = () => {
   if (!stripe) stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   return stripe;
 };
+
+export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user.id }).populate(
+    "items.product",
+  );
+
+  if (!cart || cart.items.length === 0) {
+    return next(new AppError("Your cart is empty.", 400));
+  }
+
+  const shippingAddress = req.body.shippingAddress || "Local Pickup";
+
+  let totalAmount = 0;
+
+  for (const item of cart.items) {
+    if (!item.product) continue;
+
+    const price = item.product.priceDiscount || item.product.price;
+    totalAmount += price * item.quantity;
+  }
+
+  if (totalAmount <= 0) {
+    return next(new AppError("Invalid checkout amount.", 400));
+  }
+
+  const merchantReference = `AEROX-${Date.now()}-${crypto
+    .randomBytes(4)
+    .toString("hex")
+    .toUpperCase()}`;
+
+  const checkout = createCheckout(totalAmount, merchantReference, new Date());
+
+  console.log("MOAMALAT CHECKOUT:", checkout);
+  res.status(200).json({
+    status: "success",
+    merchantReference,
+    shippingAddress,
+    checkout,
+  });
+});
 
 export const createCheckoutSession = catchAsync(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user.id }).populate(
@@ -23,24 +65,29 @@ export const createCheckoutSession = catchAsync(async (req, res, next) => {
 
   const shippingAddress = req.body.shippingAddress || "Local Pickup";
 
-  const lineItems = cart.items.map((item) => {
-    if (!item.product) return null;
-    const price = item.product.priceDiscount || item.product.price;
-    const images = req.protocol === "https" && item.product.imageCover
-      ? [`${req.protocol}://${req.get("host")}/images/products/${item.product.imageCover}`]
-      : [];
-    return {
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.product.name,
-          images,
+  const lineItems = cart.items
+    .map((item) => {
+      if (!item.product) return null;
+      const price = item.product.priceDiscount || item.product.price;
+      const images =
+        req.protocol === "https" && item.product.imageCover
+          ? [
+              `${req.protocol}://${req.get("host")}/images/products/${item.product.imageCover}`,
+            ]
+          : [];
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.product.name,
+            images,
+          },
+          unit_amount: Math.round(price * 100),
         },
-        unit_amount: Math.round(price * 100),
-      },
-      quantity: item.quantity,
-    };
-  }).filter(Boolean);
+        quantity: item.quantity,
+      };
+    })
+    .filter(Boolean);
 
   if (lineItems.length === 0) {
     return next(new AppError("No valid products in cart.", 400));
@@ -158,7 +205,10 @@ export const getCheckoutSuccess = catchAsync(async (req, res, next) => {
   const cartId = session.client_reference_id;
 
   // If webhook hasn't created the order yet, create it here
-  if (!existingOrder || existingOrder.createdAt < new Date(session.created * 1000)) {
+  if (
+    !existingOrder ||
+    existingOrder.createdAt < new Date(session.created * 1000)
+  ) {
     const cart = await Cart.findById(cartId).populate("items.product");
 
     if (cart && cart.items.length > 0) {

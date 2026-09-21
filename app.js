@@ -50,33 +50,44 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'", "data:", "blob:"],
+
         baseUri: ["'self'"],
+
         fontSrc: ["'self'", "https:", "data:"],
+
         scriptSrc: [
           "'self'",
           "https://cdn.tailwindcss.com",
-          "https://accounts.google.com/gsi/client", // Explicit script path
+          "https://accounts.google.com/gsi/client",
           "https://*.googleusercontent.com",
           "https://accounts.google.com",
+          "https://tnpg.moamalat.net:6006",
           "'unsafe-inline'",
         ],
+
         styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+
         imgSrc: [
           "'self'",
           "https:",
           "data:",
           "https://*.googleusercontent.com",
-        ], // Allows user Google profile pictures
+        ],
+
         connectSrc: [
           "'self'",
           "https:",
           "wss:",
           "https://accounts.google.com/gsi/",
+          "https://tnpg.moamalat.net",
         ],
+
         frameSrc: [
           "'self'",
           "https://accounts.google.com",
-          "https://accounts.google.com/gsi/", // Allows Google Auth iframe/popup
+          "https://accounts.google.com/gsi/",
+          "https://tnpg.moamalat.net:6006",
+          "https://tnpg.moamalat.net",
         ],
       },
     },

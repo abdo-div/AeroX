@@ -1,5 +1,7 @@
 import express from "express";
+
 import * as checkoutController from "../controllers/checkoutController.js";
+
 import * as authController from "../controllers/authController.js";
 
 const router = express.Router();
@@ -12,10 +14,17 @@ router.post(
   checkoutController.createCheckoutSession,
 );
 
+router.post(
+  "/moamalat",
+  authController.restrictTo("customer", "admin"),
+  checkoutController.createMoamalatCheckout,
+);
+
 export default router;
 
 // Webhook is exported separately (needs raw body, no auth)
 export const webhookRouter = express.Router();
+
 webhookRouter.post(
   "/",
   express.raw({ type: "application/json" }),
