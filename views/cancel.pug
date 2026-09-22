@@ -1,0 +1,10 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 flex items-center justify-center min-h-[60vh]")
+    div(class="text-center max-w-xl")
+      div(class="w-20 h-20 bg-yellow-500/10 border-2 border-yellow-500 rounded-full flex items-center justify-center mx-auto mb-8")
+        span(class="material-symbols-outlined text-yellow-500 text-5xl") close
+      h1(class="font-headline-lg text-primary mb-4") PAYMENT CANCELLED
+      p(class="text-on-surface-variant font-body-md mb-8") Your payment was canceled. Your cart is still available if you would like to try again.
+      a(href="/checkout" class="inline-block bg-primary text-on-primary font-label-caps px-8 py-3 font-bold hover:bg-[#FFAA00] transition-all") RETURN TO CHECKOUT

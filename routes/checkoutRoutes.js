@@ -20,6 +20,12 @@ router.post(
   checkoutController.createMoamalatCheckout,
 );
 
+router.post(
+  "/moamalat/confirm",
+  authController.restrictTo("customer", "admin"),
+  checkoutController.confirmMoamalatPayment,
+);
+
 export default router;
 
 // Webhook is exported separately (needs raw body, no auth)
