@@ -17,9 +17,27 @@ const getStripe = () => {
   return stripe;
 };
 
-const formatMoamalatDate = (date = new Date()) => {
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+const formatMoamalatDate = (
+  date = new Date(),
+  timeZone = process.env.MOAMALAT_TIME_ZONE || "Africa/Tripoli",
+) => {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, value]),
+  );
+
+  return `${values.year}${values.month}${values.day}${values.hour}${values.minute}${values.second}`;
 };
 
 export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
@@ -92,7 +110,11 @@ export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
     TrxDateTime,
     SecureHash,
   };
-  const returnUrl = `${req.protocol}://${req.get("host")}/checkout/success?ref=${encodeURIComponent(merchantReference)}`;
+  const configuredBaseUrl = process.env.APP_URL || `https://${req.get("host")}`;
+  const baseUrl = configuredBaseUrl
+    .replace(/^http:\/\//i, "https://")
+    .replace(/\/+$/, "");
+  const returnUrl = `${baseUrl}/checkout/success?ref=${encodeURIComponent(merchantReference)}`;
   const hostedCheckoutUrl = new URL(
     `${getHostedCheckoutBaseUrl()}/light-box-hosted-checkout`,
   );
