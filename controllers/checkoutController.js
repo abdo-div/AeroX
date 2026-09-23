@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Stripe from "stripe";
 import Cart from "../models/cartModel.js";
 import Order from "../models/orderModel.js";
@@ -5,12 +6,233 @@ import Gadget from "../models/gadgetModel.js";
 import Component from "../models/componentModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import {
+  getHostedCheckoutBaseUrl,
+  verifyTransaction,
+} from "../services/moamalatService.js";
 
 let stripe;
 const getStripe = () => {
   if (!stripe) stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   return stripe;
 };
+
+const formatMoamalatDate = (date = new Date()) => {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}`;
+};
+
+export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user.id }).populate('items.product');
+
+  if (!cart || cart.items.length === 0) {
+    return next(new AppError('Your cart is empty.', 400));
+  }
+
+  const shippingAddress = req.body.shippingAddress || 'Local Pickup';
+
+  let totalAmount = 0;
+  for (const item of cart.items) {
+    if (!item.product) continue;
+    const price = item.product.priceDiscount || item.product.price;
+    totalAmount += price * item.quantity;
+  }
+
+  if (totalAmount <= 0) {
+    return next(new AppError('Invalid checkout amount.', 400));
+  }
+
+  const merchantReference = `AEROX-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+  const processedItems = cart.items
+    .filter((item) => item.product)
+    .map((item) => ({
+      productType: item.productType,
+      product: item.product._id,
+      quantity: item.quantity,
+      priceAtPurchase: item.product.priceDiscount || item.product.price,
+    }));
+
+  const order = await Order.create({
+    user: req.user.id,
+    items: processedItems,
+    totalAmount,
+    shippingAddress,
+    merchantReference,
+    paymentStatus: 'pending',
+    orderStatus: 'processing',
+  });
+
+  const MID = process.env.MOAMALAT_MERCHANT_ID;
+  const TID = process.env.MOAMALAT_TERMINAL_ID;
+  const secureKey = process.env.MOAMALAT_SECURE_KEY;
+  if (!MID || !TID || !secureKey) {
+    return next(new AppError("Moamalat credentials are not configured.", 500));
+  }
+
+  const AmountTrxn = Math.round(totalAmount * 1000);
+  const TrxDateTime = formatMoamalatDate();
+  const hashString =
+    `AmountTrxn=${AmountTrxn}` +
+    `&MID=${MID}` +
+    `&MerchantReference=${merchantReference}` +
+    `&TID=${TID}` +
+    `&TrxDateTime=${TrxDateTime}`;
+  const SecureHash = crypto
+    .createHmac("sha256", Buffer.from(secureKey, "hex"))
+    .update(hashString)
+    .digest("hex")
+    .toUpperCase();
+
+  const checkout = {
+    MID,
+    TID,
+    AmountTrxn,
+    MerchantReference: merchantReference,
+    TrxDateTime,
+    SecureHash,
+  };
+  const returnUrl = `${req.protocol}://${req.get("host")}/checkout/success?ref=${encodeURIComponent(merchantReference)}`;
+  const hostedCheckoutUrl = new URL(
+    `${getHostedCheckoutBaseUrl()}/light-box-hosted-checkout`,
+  );
+  hostedCheckoutUrl.search = new URLSearchParams({
+    OrderID: merchantReference,
+    MID: checkout.MID,
+    TID: checkout.TID,
+    amount: String(AmountTrxn),
+    AmountTrxn: String(AmountTrxn),
+    Referrer: "",
+    PaymentMethodFromLightBox: "2",
+    MerchantReference: checkout.MerchantReference,
+    secureHashAnonymous: checkout.SecureHash,
+    trxDateTime: checkout.TrxDateTime,
+    TrxDateTime: checkout.TrxDateTime,
+    returnUrl,
+  }).toString();
+
+  res.status(200).json({
+    status: 'success',
+    MID,
+    TID,
+    AmountTrxn,
+    MerchantReference: merchantReference,
+    TrxDateTime,
+    SecureHash,
+    merchantReference,
+    orderId: order._id,
+    shippingAddress,
+    checkout,
+    hostedCheckoutUrl: hostedCheckoutUrl.toString(),
+  });
+});
+
+const completeMoamalatOrder = async (order, userId) => {
+  if (order.paymentStatus === "paid") return order;
+
+  const products = [];
+  for (const item of order.items) {
+    const Model = item.productType === "Gadget" ? Gadget : Component;
+    const productId = item.product?._id || item.product;
+    const product = await Model.findById(productId);
+
+    if (!product || product.stock < item.quantity) {
+      throw new AppError(`Insufficient stock for order item ${productId}.`, 409);
+    }
+
+    products.push({ product, quantity: item.quantity });
+  }
+
+  for (const { product, quantity } of products) {
+    product.stock -= quantity;
+    await product.save({ validateBeforeSave: false });
+  }
+
+  order.user = userId;
+  order.paymentStatus = "paid";
+  order.isPaid = true;
+  order.paidAt = new Date();
+  order.status = "Processing";
+  await order.save();
+  await Cart.findOneAndDelete({ user: userId });
+  return order;
+};
+
+export const confirmMoamalatPayment = catchAsync(async (req, res, next) => {
+  const { merchantReference } = req.body;
+  if (!merchantReference) {
+    return next(new AppError("Merchant reference is required.", 400));
+  }
+
+  const order = await Order.findOne({
+    merchantReference,
+    user: req.user.id,
+  }).select("+merchantReference");
+
+  if (!order) return next(new AppError("Payment order not found.", 404));
+  if (order.paymentStatus === "paid" || order.isPaid) {
+    return res.status(200).json({ status: "success", paid: true });
+  }
+
+  const approved = await verifyTransaction(merchantReference);
+  if (!approved) {
+    return next(new AppError("Moamalat has not approved this payment.", 402));
+  }
+
+  await completeMoamalatOrder(order, req.user.id);
+  res.status(200).json({ status: "success", paid: true });
+});
+
+export const handleMoamalatSuccess = catchAsync(async (req, res, next) => {
+  const { ref } = req.query;
+  if (!ref) return next(new AppError("No transaction reference found.", 400));
+
+  const order = await Order.findOne({
+    merchantReference: ref,
+    user: req.user.id,
+  });
+  if (!order) return next(new AppError("Order not found.", 404));
+
+  if (!order.isPaid && order.paymentStatus !== "paid") {
+    const isApproved = await verifyTransaction(ref);
+    if (!isApproved) {
+      return next(
+        new AppError(
+          "Payment verification failed or transaction was rejected.",
+          400,
+        ),
+      );
+    }
+    await completeMoamalatOrder(order, req.user.id);
+  }
+
+  res.status(200).render("success", {
+    title: "Payment Successful",
+    order,
+    user: res.locals.user ? res.locals.user.toObject() : null,
+    cartCount: 0,
+  });
+});
+
+export const handleMoamalatCancel = catchAsync(async (req, res) => {
+  const { ref } = req.query;
+
+  if (ref) {
+    await Order.findOneAndUpdate(
+      { merchantReference: ref, user: req.user.id, isPaid: false },
+      {
+        status: "Cancelled",
+        paymentStatus: "failed",
+        orderStatus: "cancelled",
+      },
+    );
+  }
+
+  res.status(200).render("cancel", {
+    title: "Payment Cancelled",
+    user: res.locals.user ? res.locals.user.toObject() : null,
+  });
+});
 
 export const createCheckoutSession = catchAsync(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user.id }).populate(
@@ -23,24 +245,29 @@ export const createCheckoutSession = catchAsync(async (req, res, next) => {
 
   const shippingAddress = req.body.shippingAddress || "Local Pickup";
 
-  const lineItems = cart.items.map((item) => {
-    if (!item.product) return null;
-    const price = item.product.priceDiscount || item.product.price;
-    const images = req.protocol === "https" && item.product.imageCover
-      ? [`${req.protocol}://${req.get("host")}/images/products/${item.product.imageCover}`]
-      : [];
-    return {
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.product.name,
-          images,
+  const lineItems = cart.items
+    .map((item) => {
+      if (!item.product) return null;
+      const price = item.product.priceDiscount || item.product.price;
+      const images =
+        req.protocol === "https" && item.product.imageCover
+          ? [
+              `${req.protocol}://${req.get("host")}/images/products/${item.product.imageCover}`,
+            ]
+          : [];
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.product.name,
+            images,
+          },
+          unit_amount: Math.round(price * 100),
         },
-        unit_amount: Math.round(price * 100),
-      },
-      quantity: item.quantity,
-    };
-  }).filter(Boolean);
+        quantity: item.quantity,
+      };
+    })
+    .filter(Boolean);
 
   if (lineItems.length === 0) {
     return next(new AppError("No valid products in cart.", 400));
@@ -133,6 +360,31 @@ export const stripeWebhook = catchAsync(async (req, res, next) => {
 });
 
 export const getCheckoutSuccess = catchAsync(async (req, res, next) => {
+  const merchantReference = req.query.ref;
+  if (merchantReference) {
+    const order = await Order.findOne({
+      merchantReference,
+      user: req.user.id,
+    });
+
+    if (!order) {
+      return res.redirect("/checkout");
+    }
+
+    if (order.paymentStatus !== "paid") {
+      const approved = await verifyTransaction(merchantReference);
+      if (!approved) return res.redirect("/checkout");
+      await completeMoamalatOrder(order, req.user.id);
+    }
+
+    return res.status(200).render("checkoutSuccess", {
+      title: "AEROX | Order Confirmed",
+      cartCount: 0,
+      user: res.locals.user ? res.locals.user.toObject() : null,
+      paymentProvider: "Moamalat",
+    });
+  }
+
   const sessionId = req.query.session_id;
 
   if (!sessionId) {
@@ -158,7 +410,10 @@ export const getCheckoutSuccess = catchAsync(async (req, res, next) => {
   const cartId = session.client_reference_id;
 
   // If webhook hasn't created the order yet, create it here
-  if (!existingOrder || existingOrder.createdAt < new Date(session.created * 1000)) {
+  if (
+    !existingOrder ||
+    existingOrder.createdAt < new Date(session.created * 1000)
+  ) {
     const cart = await Cart.findById(cartId).populate("items.product");
 
     if (cart && cart.items.length > 0) {

@@ -1,0 +1,14 @@
+extends layouts/base.pug
+
+block content
+  main(class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20 flex items-center justify-center min-h-[60vh]")
+    div(class="text-center max-w-xl")
+      div(class="w-20 h-20 bg-green-500/10 border-2 border-green-500 rounded-full flex items-center justify-center mx-auto mb-8")
+        span(class="material-symbols-outlined text-green-500 text-5xl" style="font-variation-settings:'FILL' 1;") check_circle
+      h1(class="font-headline-lg text-primary mb-4") PAYMENT SUCCESSFUL
+      p(class="text-on-surface-variant font-body-md mb-6") Your order has been confirmed and your payment was verified securely.
+      if order && order.merchantReference
+        p(class="text-white font-label-caps mb-8") ORDER REFERENCE: #{order.merchantReference}
+      div(class="flex gap-4 justify-center")
+        a(href="/my-orders" class="bg-primary text-on-primary font-label-caps px-8 py-3 font-bold hover:bg-[#FFAA00] transition-all") VIEW ORDERS
+        a(href="/shop" class="border border-outline-variant text-on-surface-variant font-label-caps px-8 py-3 hover:bg-surface-container transition-all") CONTINUE SHOPPING

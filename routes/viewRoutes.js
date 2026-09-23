@@ -27,7 +27,19 @@ router.get("/signup", viewsController.getSignupForm);
 // Protected UI pages (User must absolutely be logged in to view)
 router.get("/cart", authController.protect, viewsController.getCart);
 router.get("/checkout", authController.protect, viewsController.getCheckout);
-router.get("/checkout/success", authController.protect, checkoutController.getCheckoutSuccess);
+router.get(
+  "/checkout/success",
+  authController.protect,
+  (req, res, next) => {
+    if (req.query.ref) return checkoutController.handleMoamalatSuccess(req, res, next);
+    return checkoutController.getCheckoutSuccess(req, res, next);
+  },
+);
+router.get(
+  "/checkout/cancel",
+  authController.protect,
+  checkoutController.handleMoamalatCancel,
+);
 router.get("/me", authController.protect, viewsController.getAccount);
 router.get("/my-orders", authController.protect, viewsController.getOrders);
 

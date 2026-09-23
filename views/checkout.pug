@@ -24,14 +24,14 @@ block content
                 label(class="font-label-caps text-on-surface-variant") DELIVERY ADDRESS
                 input(type="text" required id="ship-address" class="w-full bg-[#0d0d0d] border border-outline-variant p-4 text-white font-body-md focus:border-primary transition-all" placeholder="Street, City, ZIP")
 
-          //- Payment Info (Stripe handles this)
+          //- Payment Info
           div
             h2(class="font-headline-md text-2xl text-primary mb-6 border-l-4 border-primary pl-4 uppercase") PAYMENT METHOD
             div(class="border-2 border-primary bg-[#111111] p-6 flex items-center gap-4")
               span(class="material-symbols-outlined text-primary text-3xl") credit_card
               div
-                span(class="font-headline-md text-white block") Secure Card Payment via Stripe
-                span(class="text-on-surface-variant text-sm") You will be redirected to Stripe to complete payment.
+                span(class="font-headline-md text-white block") Secure Card Payment via Moamalat
+                span(class="text-on-surface-variant text-sm") Complete your payment securely in the Moamalat window.
 
           button#pay-btn(type="submit" class="w-full h-[60px] bg-primary text-black font-headline-md text-xl font-bold uppercase tracking-widest hover:bg-[#FFAA00] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3")
             span#pay-btn-text PROCEED TO PAYMENT
@@ -76,33 +76,37 @@ block scripts
   script.
     document.getElementById('checkout-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+
       const btn = document.getElementById('pay-btn');
       const btnText = document.getElementById('pay-btn-text');
       const spinner = document.getElementById('pay-spinner');
+
       btn.disabled = true;
-      btnText.textContent = 'REDIRECTING...';
+      btnText.textContent = 'PREPARING PAYMENT...';
       spinner.classList.remove('hidden');
 
       const shippingAddress = document.getElementById('ship-address').value;
 
       try {
-        const res = await fetch('/api/v1/checkout/create-session', {
+        const res = await fetch('/api/v1/checkout/moamalat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ shippingAddress })
         });
         const data = await res.json();
-        if (res.ok && data.url) {
-          window.location.href = data.url;
-        } else {
-          alert(data.message || 'Checkout failed. Please try again.');
-          btn.disabled = false;
-          btnText.textContent = 'PROCEED TO PAYMENT';
-          spinner.classList.add('hidden');
+
+        if (!res.ok) {
+          throw new Error(data.message || 'Unable to create Moamalat checkout');
         }
-      } catch(err) {
-        console.error(err);
-        alert('Connection error. Try again.');
+
+        window.location.assign(data.hostedCheckoutUrl);
+
+      } catch (err) {
+        console.error('CHECKOUT ERROR:', err);
+        alert(err.message || 'Connection error. Try again.');
+
         btn.disabled = false;
         btnText.textContent = 'PROCEED TO PAYMENT';
         spinner.classList.add('hidden');

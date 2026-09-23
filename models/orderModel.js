@@ -38,9 +38,24 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: [true, "An order must have a total amount"],
     },
+    merchantReference: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     shippingAddress: {
       type: String,
       default: "local pickup/ digital delivery",
+    },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    paidAt: Date,
+    status: {
+      type: String,
+      enum: ["Pending", "Processing", "Cancelled"],
+      default: "Pending",
     },
     paymentStatus: {
       type: String,
