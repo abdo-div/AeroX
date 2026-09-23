@@ -2,19 +2,25 @@ import Moamalat from "moamalat";
 
 const getMoamalat = () => {
   const requiredSettings = [
-    "MOAMALAT_MERCHANT_ID",
-    "MOAMALAT_TERMINAL_ID",
+    "MOAMALAT_MID",
+    "MOAMALAT_TID",
     "MOAMALAT_SECURE_KEY",
   ];
 
-  const missingSettings = requiredSettings.filter((setting) => !process.env[setting]);
+  const MID = process.env.MOAMALAT_MID || process.env.MOAMALAT_MERCHANT_ID;
+  const TID = process.env.MOAMALAT_TID || process.env.MOAMALAT_TERMINAL_ID;
+  const missingSettings = [
+    !MID && requiredSettings[0],
+    !TID && requiredSettings[1],
+    !process.env.MOAMALAT_SECURE_KEY && requiredSettings[2],
+  ].filter(Boolean);
   if (missingSettings.length > 0) {
     throw new Error(`Missing Moamalat configuration: ${missingSettings.join(", ")}`);
   }
 
   return new Moamalat({
-    merchantId: process.env.MOAMALAT_MERCHANT_ID,
-    terminalId: process.env.MOAMALAT_TERMINAL_ID,
+    merchantId: MID,
+    terminalId: TID,
     secureKey: process.env.MOAMALAT_SECURE_KEY,
     prod: process.env.MOAMALAT_PRODUCTION === "true",
   });

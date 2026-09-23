@@ -28,7 +28,6 @@ const formatMoamalatDate = (
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit",
     hourCycle: "h23",
   }).formatToParts(date);
   const values = Object.fromEntries(
@@ -37,7 +36,7 @@ const formatMoamalatDate = (
       .map(({ type, value }) => [type, value]),
   );
 
-  return `${values.year}${values.month}${values.day}${values.hour}${values.minute}${values.second}`;
+  return `${values.year}${values.month}${values.day}${values.hour}${values.minute}`;
 };
 
 export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
@@ -81,8 +80,8 @@ export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
     orderStatus: 'processing',
   });
 
-  const MID = process.env.MOAMALAT_MERCHANT_ID;
-  const TID = process.env.MOAMALAT_TERMINAL_ID;
+  const MID = process.env.MOAMALAT_MID || process.env.MOAMALAT_MERCHANT_ID;
+  const TID = process.env.MOAMALAT_TID || process.env.MOAMALAT_TERMINAL_ID;
   const secureKey = process.env.MOAMALAT_SECURE_KEY;
   if (!MID || !TID || !secureKey) {
     return next(new AppError("Moamalat credentials are not configured.", 500));
@@ -91,14 +90,14 @@ export const createMoamalatCheckout = catchAsync(async (req, res, next) => {
   const AmountTrxn = Math.round(totalAmount * 1000);
   const TrxDateTime = formatMoamalatDate();
   const hashString =
-    `AmountTrxn=${AmountTrxn}` +
-    `&MID=${MID}` +
+    `Amount=${AmountTrxn}` +
+    `&DateTimeLocalTrxn=${TrxDateTime}` +
+    `&MerchantId=${MID}` +
     `&MerchantReference=${merchantReference}` +
-    `&TID=${TID}` +
-    `&TrxDateTime=${TrxDateTime}`;
+    `&TerminalId=${TID}`;
   const SecureHash = crypto
     .createHmac("sha256", Buffer.from(secureKey, "hex"))
-    .update(hashString)
+    .update(hashString, "utf8")
     .digest("hex")
     .toUpperCase();
 
