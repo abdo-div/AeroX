@@ -73,6 +73,7 @@ block content
             span(class="font-label-caps text-[10px] text-on-secondary-container") SECURE ENCRYPTED TRANSACTION
 
 block scripts
+  script(src="https://tnpg.moamalat.net:6006/js/lightbox.js")
   script.
     document.getElementById('checkout-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -101,7 +102,31 @@ block scripts
           throw new Error(data.message || 'Unable to create Moamalat checkout');
         }
 
-        window.location.assign(data.hostedCheckoutUrl);
+        Lightbox.Checkout.configure = {
+          MID: data.MID,
+          TID: data.TID,
+          AmountTrxn: data.AmountTrxn,
+          MerchantReference: data.MerchantReference,
+          TrxDateTime: data.TrxDateTime,
+          SecureHash: data.SecureHash,
+          completeCallback: function (paymentData) {
+            console.log('Payment Success:', paymentData);
+            window.location.href = `/checkout/success?ref=${encodeURIComponent(paymentData.MerchantReference || data.MerchantReference)}`;
+          },
+          errorCallback: function (error) {
+            console.error('Payment Error:', error);
+            alert('Payment failed. Please try again.');
+          },
+          cancelCallback: function () {
+            console.log('Payment Canceled');
+          }
+        };
+
+        btn.disabled = false;
+        btnText.textContent = 'PROCEED TO PAYMENT';
+        spinner.classList.add('hidden');
+
+        Lightbox.Checkout.showLightbox();
 
       } catch (err) {
         console.error('CHECKOUT ERROR:', err);
